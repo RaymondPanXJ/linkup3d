@@ -252,10 +252,105 @@
              detail: bad ? '意外为 true' : '正确为 false' };
   }
 
+  /* ---------------- 难度尺寸（4x4 / 6x8）新增用例 ---------------- */
+
+  /** 满盘发牌通用校验：尺寸、总牌数、成对、开局有解 */
+  function checkDeal(rows, cols) {
+    var g = L.dealGrid(rows, cols);
+    var size = L.gridSize(g);
+    var counts = {};
+    var total = 0;
+    for (var r = 1; r <= rows; r++)
+      for (var c = 1; c <= cols; c++)
+        if (g[r][c]) { counts[g[r][c]] = (counts[g[r][c]] || 0) + 1; total++; }
+    var allPairs = Object.keys(counts).every(function (k) { return counts[k] === 2; });
+    var dimOk = size.rows === rows && size.cols === cols &&
+                g.length === rows + 2 && g[0].length === cols + 2;
+    var solvable = L.hasSolvablePair(g);
+    return { dimOk: dimOk, total: total, allPairs: allPairs, solvable: solvable,
+             pairs: Object.keys(counts).length, pass:
+               dimOk && total === rows * cols && allPairs && solvable };
+  }
+
+  // 13. 简单 4x4 发牌：满盘 16 张、8 对、开局有解
+  function t13() {
+    var res = checkDeal(4, 4);
+    return { name: '用例13 简单 4x4 发牌 16 张 8 对且开局有解',
+             pass: res.pass,
+             detail: '尺寸正确=' + res.dimOk + ' 总牌数=' + res.total +
+                     ' 每种成对=' + res.allPairs + ' 对数=' + res.pairs +
+                     ' 开局有解=' + res.solvable };
+  }
+
+  // 14. 困难 6x8 发牌：满盘 48 张、24 对、开局有解
+  function t14() {
+    var res = checkDeal(6, 8);
+    return { name: '用例14 困难 6x8 发牌 48 张 24 对且开局有解',
+             pass: res.pass,
+             detail: '尺寸正确=' + res.dimOk + ' 总牌数=' + res.total +
+                     ' 每种成对=' + res.allPairs + ' 对数=' + res.pairs +
+                     ' 开局有解=' + res.solvable };
+  }
+
+  // 15. 困难 6x8 随机整局模拟：每步消除合法对子；死锁时洗牌保位且有解，直至清盘
+  function t15() {
+    var trials = 50, ok = true, detail = '';
+    for (var t = 0; t < trials && ok; t++) {
+      var g = L.dealGrid(6, 8);
+      var guard = 0;
+      while (L.countTiles(g) > 0) {
+        if (++guard > 2000) { ok = false; detail = '第' + t + '局未收敛'; break; }
+        var pair = L.findSolvablePair(g);
+        if (!pair) {
+          var occBefore = L.occupiedPositions(g)
+            .map(function (p) { return p.r + ',' + p.c; }).sort().join('|');
+          L.shuffleGrid(g);
+          var occAfter = L.occupiedPositions(g)
+            .map(function (p) { return p.r + ',' + p.c; }).sort().join('|');
+          if (occBefore !== occAfter) {
+            ok = false; detail = '洗牌改变了占位（第' + t + '局）'; break;
+          }
+          if (L.countTiles(g) >= 2 && !L.hasSolvablePair(g)) {
+            ok = false; detail = '洗牌后仍无解（第' + t + '局）'; break;
+          }
+          continue;
+        }
+        var err = assertPathValid(g, pair.path, pair.a, pair.b);
+        if (err) { ok = false; detail = '第' + t + '局路径非法: ' + err; break; }
+        g[pair.a.r][pair.a.c] = 0;
+        g[pair.b.r][pair.b.c] = 0;
+      }
+    }
+    return { name: '用例15 困难 6x8 随机 50 局整局模拟（整局自动可清）',
+             pass: ok, detail: ok ? '50 局全部合法消除并清盘' : detail };
+  }
+
+  // 16. 尺寸校验与向后兼容：非法/奇数尺寸报错；旧签名 dealGrid(rng) 仍为 4x6
+  function t16() {
+    function throws(fn) {
+      try { fn(); return false; } catch (e) { return e instanceof Error; }
+    }
+    var oddThrows = throws(function () { L.createGrid(3, 3); });      // 奇数格子
+    var badThrows = throws(function () { L.createGrid(0, 6); });      // 非正整数
+    var floatThrows = throws(function () { L.createGrid(2.5, 4); });  // 非整数
+    var dealThrows = throws(function () { L.dealGrid(5, 5); });       // 奇数格子
+    // 旧签名：第一参数为函数时视为 rng，尺寸仍为默认 4x6
+    var g = L.dealGrid(function () { return 0.5; });
+    var size = L.gridSize(g);
+    var legacyOk = size.rows === 4 && size.cols === 6 && L.countTiles(g) === 24;
+    var pass = oddThrows && badThrows && floatThrows && dealThrows && legacyOk;
+    return { name: '用例16 非法尺寸报错 + 旧 dealGrid(rng) 签名兼容',
+             pass: pass,
+             detail: '奇数报错=' + oddThrows + ' 非法报错=' + badThrows +
+                     ' 小数报错=' + floatThrows + ' 发牌奇数报错=' + dealThrows +
+                     ' 旧签名默认4x6=' + legacyOk };
+  }
+
   return {
     runAll: function () {
       return [t1(), t2(), t3(), t4(), t5(), t6(),
-              t7(), t8(), t9(), t10(), t11(), t12()];
+              t7(), t8(), t9(), t10(), t11(), t12(),
+              t13(), t14(), t15(), t16()];
     }
   };
 });
