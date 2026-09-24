@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D 连连看 — 核心算法自测</title>
+<style>
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background: #0a0e1c; color: #dfe7ff;
+    max-width: 860px; margin: 0 auto; padding: 28px 18px;
+  }
+  h1 { font-size: 22px; letter-spacing: 4px; }
+  #summary { font-size: 17px; margin: 14px 0 20px; color: #ffd166; }
+  .row {
+    border: 1px solid rgba(122, 162, 255, .25);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: rgba(23, 33, 66, .6);
+    font-size: 14px;
+    line-height: 1.6;
+    word-break: break-all;
+  }
+  .row .badge {
+    display: inline-block; padding: 1px 10px; border-radius: 999px;
+    font-weight: 700; margin-right: 10px;
+  }
+  .pass .badge { background: #1d5c3a; color: #7dffb0; }
+  .fail .badge { background: #6b1f2a; color: #ff9aa8; }
+  .detail { color: #93a7da; font-size: 12px; }
+  a { color: #6aa8ff; }
+</style>
+</head>
+<body>
+  <h1>核心算法自测</h1>
+  <p><a href="../index.html">← 返回游戏</a></p>
+  <div id="summary">运行中…</div>
+  <div id="results"></div>
+
+  <script src="../js/link3d.js"></script>
+  <script src="tests.define.js"></script>
+  <script>
+    (function () {
+      var results = Link3DTests.runAll();
+      var pass = 0;
+      var box = document.getElementById('results');
+      results.forEach(function (r) {
+        if (r.pass) pass++;
+        var div = document.createElement('div');
+        div.className = 'row ' + (r.pass ? 'pass' : 'fail');
+        div.innerHTML =
+          '<span class="badge">' + (r.pass ? 'PASS' : 'FAIL') + '</span>' +
+          r.name + '<br><span class="detail">' + r.detail + '</span>';
+        box.appendChild(div);
+      });
+      var s = document.getElementById('summary');
+      s.textContent = pass + '/' + results.length + ' 通过';
+      s.style.color = pass === results.length ? '#7dffb0' : '#ff9aa8';
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D 连连看</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <h1>3D 连连看</h1>
+  <p class="subtitle">找出相同图案 · 折线转弯不超过两次</p>
+
+  <div class="hud">
+    <div class="stat"><span class="label">得分</span><span class="value" id="score">0</span></div>
+    <div class="stat combo" id="comboStat"><span class="label">连击</span><span class="value" id="combo">—</span></div>
+    <div class="stat"><span class="label">用时</span><span class="value" id="time">00:00</span></div>
+    <div class="stat"><span class="label">剩余对数</span><span class="value" id="pairs">12</span></div>
+    <button id="restart" type="button">重新开始</button>
+  </div>
+
+  <div id="stage">
+    <div id="scene">
+      <div id="board">
+        <div id="floor"></div>
+        <div class="path-layer" id="pathLayer"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <div id="overlay">
+    <div class="panel">
+      <h2>恭喜通关</h2>
+      <p class="final-score" id="finalScore">0</p>
+      <p id="finalTime">用时 00:00</p>
+      <button id="again" type="button">再来一局</button>
+    </div>
+  </div>
+
+  <script src="js/link3d.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
