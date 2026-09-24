@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <canvas id="starfield" aria-hidden="true"></canvas>
   <h1>3D 连连看</h1>
   <p class="subtitle">找出相同图案 · 折线转弯不超过两次</p>
 
@@ -23,6 +24,7 @@
       <button type="button" class="diff-btn" data-key="hard">困难 6×8</button>
     </div>
     <button id="restart" type="button">重新开始</button>
+    <button id="music" type="button" aria-label="背景音乐">♪</button>
     <button id="mute" type="button" aria-label="静音">🔊</button>
   </div>
 
@@ -48,6 +50,8 @@
 
   <script src="js/link3d.js"></script>
   <script src="js/combo.js"></script>
+  <script src="js/music.js"></script>
+  <script src="js/stars.js"></script>
   <script src="js/game.js"></script>
 </body>
 </html>
