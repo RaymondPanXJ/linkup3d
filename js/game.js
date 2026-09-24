@@ -24,6 +24,96 @@
   var overlay = document.getElementById('overlay');
   var finalScoreEl = document.getElementById('finalScore');
   var finalTimeEl = document.getElementById('finalTime');
+  var muteBtn = document.getElementById('mute');
+
+  /* ---------------- 音效（WebAudio 程序化合成，零音频文件） ---------------- */
+  var SFX = (function () {
+    var MUTE_KEY = 'linkup3d.muted';
+    var muted = false;
+    try { muted = localStorage.getItem(MUTE_KEY) === '1'; } catch (e) { /* 无存储环境忽略 */ }
+
+    var ctx = null;
+    function ensureCtx() {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      if (!ctx) { try { ctx = new AC(); } catch (e) { return null; } }
+      // 浏览器自动播放策略：上下文初始为 suspended，需在用户手势中恢复
+      if (ctx.state === 'suspended' && ctx.resume) { try { ctx.resume(); } catch (e) { /* 忽略 */ } }
+      return ctx;
+    }
+
+    // 在 [t0, t0+dur] 播放一个带包络的振荡器音； glideTo 为可选滑音目标频率
+    function tone(freq, t0, dur, type, gain, glideTo) {
+      var o = ctx.createOscillator();
+      var g = ctx.createGain();
+      o.type = type || 'sine';
+      o.frequency.setValueAtTime(freq, t0);
+      if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, t0 + dur);
+      var peak = gain || 0.15;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(peak, t0 + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g).connect(ctx.destination);
+      o.start(t0);
+      o.stop(t0 + dur + 0.03);
+    }
+
+    function play(voice) {
+      if (muted) return;
+      var c = ensureCtx();
+      if (!c) return;
+      voice(c, c.currentTime + 0.01);
+    }
+
+    return {
+      isMuted: function () { return muted; },
+      setMuted: function (m) {
+        muted = !!m;
+        try { localStorage.setItem(MUTE_KEY, muted ? '1' : '0'); } catch (e) { /* 忽略 */ }
+      },
+      // 消除成功：双音上行叮声
+      match: function () {
+        play(function (c, t) {
+          tone(784, t, 0.09, 'triangle', 0.16);          // G5
+          tone(1046.5, t + 0.06, 0.16, 'triangle', 0.16); // C6
+        });
+      },
+      // 配对失败：低滑音蜂鸣
+      fail: function () {
+        play(function (c, t) {
+          tone(220, t, 0.22, 'sawtooth', 0.09, 140);
+        });
+      },
+      // 洗牌：快速上滑刮奏
+      shuffle: function () {
+        play(function (c, t) {
+          tone(262, t, 0.3, 'triangle', 0.12, 784);
+          tone(330, t + 0.05, 0.26, 'sine', 0.08, 988);
+        });
+      },
+      // 通关：四音上行小号角
+      win: function () {
+        play(function (c, t) {
+          var seq = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
+          for (var i = 0; i < seq.length; i++) {
+            tone(seq[i], t + i * 0.13, 0.3, 'square', 0.07);
+            tone(seq[i] * 2, t + i * 0.13, 0.24, 'sine', 0.05);
+          }
+        });
+      }
+    };
+  })();
+
+  function renderMuteBtn() {
+    muteBtn.textContent = SFX.isMuted() ? '🔇' : '🔊';
+    muteBtn.setAttribute('aria-pressed', SFX.isMuted() ? 'true' : 'false');
+    muteBtn.setAttribute('aria-label', SFX.isMuted() ? '取消静音' : '静音');
+  }
+  muteBtn.addEventListener('click', function () {
+    SFX.setMuted(!SFX.isMuted());
+    renderMuteBtn();
+  });
+  renderMuteBtn();
 
   /* ---------------- 状态 ---------------- */
   var grid = null;          // link3d 扩展网格（0 为边框）
@@ -162,6 +252,7 @@
   }
 
   function rejectPair(ta, tb) {
+    SFX.fail();
     [ta, tb].forEach(function (t) {
       var slot = t.parentNode.parentNode;
       slot.classList.remove('shake');
@@ -176,6 +267,7 @@
 
   function eliminate(a, b, path) {
     busy = true;
+    SFX.match();
     drawPath(path);
 
     var now = Date.now();
@@ -218,6 +310,7 @@
 
   function doShuffle() {
     busy = true;
+    SFX.shuffle();
     showToast('无可连对子，自动洗牌');
     L.shuffleGrid(grid);
     var myGen = gen;
@@ -283,6 +376,7 @@
 
   function win() {
     running = false;
+    SFX.win();
     clearInterval(timerId);
     timerId = null;
     board.classList.add('won');
