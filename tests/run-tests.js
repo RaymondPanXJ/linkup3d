@@ -5,15 +5,17 @@
  */
 var tests = require('./tests.define.js');
 var comboTests = require('./combo.define.js');
+var rankingTests = require('./ranking.define.js');
 var spaceTests = require('./space.define.js');
 var timerTests = require('./timer.define.js');
 var uiChecks = require('./ui-static-check.js');
 var spaceChecks = require('./space-static-check.js');
 var timerChecks = require('./timer-static-check.js');
+var rankChecks = require('./rank-static-check.js');
 
-var results = tests.runAll().concat(comboTests.runAll(), spaceTests.runAll(),
-  timerTests.runAll(), uiChecks.runChecks(), spaceChecks.runChecks(),
-  timerChecks.runChecks());
+var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
+  spaceTests.runAll(), timerTests.runAll(), uiChecks.runChecks(),
+  spaceChecks.runChecks(), timerChecks.runChecks(), rankChecks.runChecks());
 var pass = 0;
 
 results.forEach(function (r) {
