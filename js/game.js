@@ -63,6 +63,34 @@
   var rankTabs = document.getElementById('rankTabs');
   var rankTbody = document.getElementById('rankTbody');
   var rankClose = document.getElementById('rankClose');
+  var themeBtn = document.getElementById('theme');
+
+  /* ---------------- 主题（深空→浅色→霓虹 循环，issue #15） ---------------- */
+  var THEME_KEY = 'linkup3d.theme';
+  var THEMES = ['deep-space', 'light', 'neon'];
+  var THEME_NAMES = { 'deep-space': '深空', 'light': '浅色', 'neon': '霓虹' };
+
+  function loadTheme() {
+    var t = null;
+    try { t = localStorage.getItem(THEME_KEY); } catch (e) { /* 无存储环境忽略 */ }
+    return THEMES.indexOf(t) >= 0 ? t : 'deep-space';
+  }
+
+  var theme = loadTheme();
+
+  function applyTheme() {
+    document.documentElement.setAttribute('data-theme', theme);
+    themeBtn.setAttribute('aria-label', '切换主题，当前：' + THEME_NAMES[theme]);
+    themeBtn.setAttribute('aria-pressed', theme === 'deep-space' ? 'false' : 'true');
+  }
+
+  themeBtn.addEventListener('click', function () {
+    theme = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* 忽略 */ }
+    applyTheme();
+  });
+
+  applyTheme();
 
   /* ---------------- 音效（WebAudio 程序化合成，零音频文件） ---------------- */
   var SFX = (function () {
@@ -364,6 +392,8 @@
     Object.keys(slots).forEach(function (k) { slots[k].remove(); delete slots[k]; });
     pathLayer.innerHTML = '';
     grid = L.dealGrid(ROWS, COLS);
+    board.setAttribute('role', 'grid');
+    board.setAttribute('aria-label', ROWS + ' 行 ' + COLS + ' 列连连看棋盘');
     for (var r = 1; r <= ROWS; r++) {
       for (var c = 1; c <= COLS; c++) {
         var v = grid[r][c];
@@ -378,7 +408,16 @@
           '<div class="face top"></div><div class="face bottom"></div>' +
           '</div></div><div class="tile-shadow"></div>';
         var tile = slot.querySelector('.tile');
+        tile.setAttribute('role', 'gridcell');
+        tile.setAttribute('tabindex', '0');
+        tile.setAttribute('aria-label', EMOJIS[v - 1] + ' 第' + r + '行第' + c + '列');
         tile.addEventListener('click', onTileClick.bind(null, r, c));
+        tile.addEventListener('keydown', function (ev, rr, cc) {
+          if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar') {
+            ev.preventDefault();
+            onTileClick(rr, cc);
+          }
+        }.bind(null, r, c));
         board.appendChild(slot);
         slots[r + ',' + c] = slot;
       }
@@ -506,6 +545,8 @@
       setTimeout(function () {
         if (myGen !== gen) return;
         slot.querySelector('.face.front').textContent = EMOJIS[v - 1];
+        var t = slot.querySelector('.tile');
+        t.setAttribute('aria-label', EMOJIS[v - 1] + ' 第' + p[0] + '行第' + p[1] + '列');
       }, SHUFFLE_MS / 2 - 60);
       setTimeout(function () { slot.classList.remove('shuffle'); }, SHUFFLE_MS);
     });
