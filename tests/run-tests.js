@@ -4,8 +4,9 @@
  * 用法：node tests/run-tests.js
  */
 var tests = require('./tests.define.js');
+var uiChecks = require('./ui-static-check.js');
 
-var results = tests.runAll();
+var results = tests.runAll().concat(uiChecks.runChecks());
 var pass = 0;
 
 results.forEach(function (r) {
