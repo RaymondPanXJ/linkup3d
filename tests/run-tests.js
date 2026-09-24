@@ -4,9 +4,10 @@
  * 用法：node tests/run-tests.js
  */
 var tests = require('./tests.define.js');
+var comboTests = require('./combo.define.js');
 var uiChecks = require('./ui-static-check.js');
 
-var results = tests.runAll().concat(uiChecks.runChecks());
+var results = tests.runAll().concat(comboTests.runAll(), uiChecks.runChecks());
 var pass = 0;
 
 results.forEach(function (r) {

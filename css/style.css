@@ -57,7 +57,11 @@ h1 {
                font-variant-numeric: tabular-nums; }
 .stat.combo .value { color: #ffd166; }
 .stat.combo.bump .value { animation: bump .35s ease; }
+.stat.combo.active .value { text-shadow: 0 0 12px rgba(255, 209, 102, .9); transform: scale(1.08); }
 @keyframes bump { 40% { transform: scale(1.4); } }
+.stat.best .value { color: #7aa2ff; }
+.stat.best.record .value { color: #ffd166; animation: record-glow 1.2s ease infinite; }
+@keyframes record-glow { 50% { text-shadow: 0 0 16px rgba(255, 209, 102, .95); transform: scale(1.12); } }
 
 button#restart, button#again {
   font: inherit;

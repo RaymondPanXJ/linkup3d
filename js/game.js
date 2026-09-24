@@ -1,11 +1,12 @@
 /**
  * game.js — 3D 连连看 UI 与游戏逻辑（纯原生 JS）
- * 依赖：js/link3d.js（window.Link3D）
+ * 依赖：js/link3d.js（window.Link3D）、js/combo.js（window.Combo）
  */
 (function () {
   'use strict';
 
   var L = window.Link3D;
+  var CB = window.Combo;
 
   /* ---------------- 难度 ---------------- */
   var DIFFICULTIES = {
@@ -39,6 +40,8 @@
   var comboStat = document.getElementById('comboStat');
   var timeEl = document.getElementById('time');
   var pairsEl = document.getElementById('pairs');
+  var bestEl = document.getElementById('best');
+  var bestStat = document.getElementById('bestStat');
   var toastEl = document.getElementById('toast');
   var overlay = document.getElementById('overlay');
   var finalScoreEl = document.getElementById('finalScore');
@@ -97,6 +100,14 @@
           tone(1046.5, t + 0.06, 0.16, 'triangle', 0.16); // C6
         });
       },
+      // 连击：半音阶递进，combo 越高音调越高（静音经 play() 统一拦截）
+      combo: function (level) {
+        var freq = 523.25 * Math.pow(2, Math.min(level - 1, 12) / 12); // C5 起，每级 +1 半音
+        play(function (c, t) {
+          tone(freq, t, 0.12, 'triangle', 0.14);
+          tone(freq * 2, t + 0.03, 0.1, 'sine', 0.06);
+        });
+      },
       // 配对失败：低滑音蜂鸣
       fail: function () {
         play(function (c, t) {
@@ -141,6 +152,7 @@
   var score = 0;
   var combo = 0;
   var lastMatchAt = 0;
+  var best = 0;              // 当前难度的历史最高分
   var seconds = 0;
   var timerId = null;
   var running = false;
@@ -148,9 +160,20 @@
   var gen = 0;              // 局号：restart 后作废旧局的延时回调
   var cellW = 0, cellH = 0;
 
-  var COMBO_WINDOW = 4000;  // 连续快速消除的窗口（毫秒）
   var REMOVE_MS = 560;
   var SHUFFLE_MS = 900;
+
+  /* ---------------- 最高分（按难度分键存储） ---------------- */
+  function loadBest() {
+    try {
+      var v = parseInt(localStorage.getItem(CB.bestKey(difficulty)), 10);
+      return isNaN(v) ? 0 : v;
+    } catch (e) { return 0; }
+  }
+
+  function refreshBest() {
+    best = loadBest();
+  }
 
   /* ---------------- 布局（响应式） ---------------- */
   function layout() {
@@ -284,7 +307,7 @@
       t.classList.remove('selected');
     });
     selected = null;
-    combo = 0;
+    combo = CB.applyMismatch();
     renderHud();
   }
 
@@ -294,15 +317,26 @@
     drawPath(path);
 
     var now = Date.now();
-    combo = (now - lastMatchAt <= COMBO_WINDOW) ? combo + 1 : 1;
+    var gap = lastMatchAt ? now - lastMatchAt : Infinity;
+    var res = CB.applyMatch(combo, gap);
+    combo = res.combo;
     lastMatchAt = now;
-    var bonus = Math.min(combo - 1, 5) * 5;
-    score += 10 + bonus;
-    if (combo > 1) {
+    score += res.points;
+    if (CB.isActive(combo)) {
+      SFX.combo(combo);
       comboStat.classList.remove('bump');
       void comboStat.offsetWidth;
       comboStat.classList.add('bump');
-      showToast('连击 x' + combo + '！+' + (10 + bonus));
+      showToast('连击 x' + Math.min(combo, CB.MAX_COMBO) + '！+' + res.points);
+    }
+    // 实时最高分：破纪录即写档并提示
+    if (CB.isRecord(score, best)) {
+      best = score;
+      try { localStorage.setItem(CB.bestKey(difficulty), String(best)); } catch (e) { /* 忽略 */ }
+      bestStat.classList.remove('record');
+      void bestStat.offsetWidth;
+      bestStat.classList.add('record');
+      showToast('🏆 新纪录 ' + best + ' 分');
     }
     renderHud();
 
@@ -372,7 +406,9 @@
   /* ---------------- HUD / 计时 / 弹窗 ---------------- */
   function renderHud() {
     scoreEl.textContent = score;
-    comboEl.textContent = combo > 1 ? 'x' + combo : '—';
+    comboEl.textContent = CB.displayCombo(combo);
+    comboStat.classList.toggle('active', CB.isActive(combo));
+    bestEl.textContent = best;
     pairsEl.textContent = L.countTiles(grid) / 2;
   }
 
@@ -413,10 +449,12 @@
     clearInterval(timerId);
     timerId = null;
     score = 0; combo = 0; seconds = 0; lastMatchAt = 0;
+    bestStat.classList.remove('record');
     selected = null; busy = false; running = true;
     timeEl.textContent = '00:00';
     overlay.classList.remove('show');
     board.classList.remove('won');
+    refreshBest();
     buildBoard();
     renderHud();
   }
