@@ -76,6 +76,23 @@ button#restart:hover, button#again:hover { transform: translateY(-2px); filter: 
                        box-shadow: 0 12px 26px rgba(48, 100, 220, .5); }
 button#restart:active, button#again:active { transform: translateY(1px); }
 
+button#mute {
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(122, 162, 255, .22);
+  background: rgba(23, 33, 66, .75);
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+  transition: transform .15s, filter .15s;
+}
+button#mute:hover { transform: translateY(-2px); filter: brightness(1.2); }
+button#mute:active { transform: translateY(1px); }
+
 /* ---------------- 3D 舞台 ---------------- */
 #stage {
   flex: 1;
