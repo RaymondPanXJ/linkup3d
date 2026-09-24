@@ -1,6 +1,7 @@
 /**
  * game.js — 3D 连连看 UI 与游戏逻辑（纯原生 JS）
- * 依赖：js/link3d.js（window.Link3D）、js/combo.js（window.Combo）
+ * 依赖：js/link3d.js（window.Link3D）、js/combo.js（window.Combo）、
+ *       js/music.js（window.Music）、js/stars.js（window.Stars）
  */
 (function () {
   'use strict';
@@ -47,6 +48,7 @@
   var finalScoreEl = document.getElementById('finalScore');
   var finalTimeEl = document.getElementById('finalTime');
   var muteBtn = document.getElementById('mute');
+  var musicBtn = document.getElementById('music');
 
   /* ---------------- 音效（WebAudio 程序化合成，零音频文件） ---------------- */
   var SFX = (function () {
@@ -144,6 +146,48 @@
     renderMuteBtn();
   });
   renderMuteBtn();
+
+  /* ---------------- 背景音乐（WebAudio 程序化合成，独立于 SFX 静音，issue #10） ---------------- */
+  var MUSIC_KEY = 'linkup3d.music';
+  var MU = window.Music;
+  var musicPlayer = MU.createPlayer();
+  var musicOn = false;
+  try { musicOn = localStorage.getItem(MUSIC_KEY) !== '0'; } catch (e) { /* 无存储环境默认开 */ }
+
+  function renderMusicBtn() {
+    musicBtn.textContent = musicOn ? '♪' : '♩';
+    musicBtn.classList.toggle('on', musicOn);
+    musicBtn.setAttribute('aria-pressed', musicOn ? 'true' : 'false');
+    musicBtn.setAttribute('aria-label', musicOn ? '关闭背景音乐' : '开启背景音乐');
+  }
+
+  // 浏览器自动播放策略：AudioContext 需在用户手势中才能恢复运行，
+  // 因此「首次交互」统一在这里触发启动（偏好为开时）。
+  function ensureMusicStarted() {
+    if (!musicOn || musicPlayer.isRunning()) return;
+    musicPlayer.start();
+  }
+
+  musicBtn.addEventListener('click', function () {
+    musicOn = !musicOn;
+    try { localStorage.setItem(MUSIC_KEY, musicOn ? '1' : '0'); } catch (e) { /* 忽略 */ }
+    if (musicOn) ensureMusicStarted(); else musicPlayer.stop();
+    renderMusicBtn();
+  });
+
+  var gestureEvents = ['pointerdown', 'touchstart', 'keydown'];
+  function onFirstGesture() {
+    ensureMusicStarted();
+    gestureEvents.forEach(function (ev) {
+      window.removeEventListener(ev, onFirstGesture);
+    });
+  }
+  gestureEvents.forEach(function (ev) {
+    window.addEventListener(ev, onFirstGesture, { once: true, passive: true });
+  });
+
+  renderMusicBtn();
+  if (musicOn) ensureMusicStarted(); // 支持自动播放的浏览器无需等待手势
 
   /* ---------------- 状态 ---------------- */
   var grid = null;          // link3d 扩展网格（0 为边框）
@@ -487,4 +531,7 @@
 
   renderDifficulty();
   restart();
+
+  /* ---------------- 动态星空背景 ---------------- */
+  window.Stars.mount(document.getElementById('starfield'));
 })();
