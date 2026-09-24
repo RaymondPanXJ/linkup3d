@@ -514,6 +514,37 @@ button#rank {
 }
 button#rank:hover { transform: translateY(-2px); filter: brightness(1.2); }
 button#rank:active { transform: translateY(1px); }
+button#mute:hover, button#music:hover { transform: translateY(-2px); filter: brightness(1.2); }
+button#mute:active, button#music:active { transform: translateY(1px); }
+
+/* 提示 / 帮助按钮 */
+button#hint, button#help {
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid rgba(255, 209, 102, .55);
+  border-radius: 999px;
+  background: rgba(255, 209, 102, .12);
+  color: #ffd166;
+  font-size: 13px;
+  letter-spacing: 2px;
+  padding: 9px 14px;
+  transition: transform .15s, filter .15s, opacity .15s;
+}
+button#help { padding: 9px 13px; font-weight: 700; }
+button#hint:hover, button#help:hover { transform: translateY(-2px); filter: brightness(1.2); }
+button#hint:disabled { opacity: .35; cursor: not-allowed; transform: none; filter: none; }
+
+/* 提示高亮：呼吸描边 */
+.tile-slot.hint .tile { animation: hintpulse 0.8s ease-in-out 3; }
+@keyframes hintpulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(255, 209, 102, 0); }
+  50% { box-shadow: 0 0 26px 6px rgba(255, 209, 102, .85); }
+}
+button#music.on {
+  color: #7dffb0;
+  border-color: rgba(125, 255, 176, .55);
+  text-shadow: 0 0 12px rgba(125, 255, 176, .8);
+}
 
 /* ---------------- 难度选择 ---------------- */
 .difficulty {
@@ -878,6 +909,62 @@ body.mobile-lite .tile-slot.removing .tile-spin {
   text-shadow: 0 0 10px rgba(255, 209, 102, .5);
 }
 .rank-table tr.rank-empty td { color: #8ea3d6; padding: 22px 0; letter-spacing: 2px; }
+
+/* ---------------- 新手引导（issue #16） ---------------- */
+#tutorial {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 8, 18, .72);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .35s;
+  z-index: 40;
+}
+#tutorial.show { opacity: 1; pointer-events: auto; }
+.tut-card {
+  background: linear-gradient(165deg, #223058, #131c3a);
+  border: 1px solid rgba(122, 162, 255, .45);
+  border-radius: 20px;
+  padding: 30px 38px 26px;
+  max-width: 430px;
+  margin: 0 20px;
+  text-align: center;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .6), 0 0 60px rgba(70, 130, 255, .18);
+}
+.tut-card h3 { margin: 0 0 10px; font-size: 21px; letter-spacing: 3px; color: #ffd166; }
+.tut-card p { margin: 0 0 16px; color: #cdd9f6; font-size: 14px; line-height: 1.8; }
+.tut-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 18px; }
+.tut-dots span {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: rgba(174, 191, 232, .3);
+  transition: background .2s, transform .2s;
+}
+.tut-dots span.active { background: #ffd166; transform: scale(1.25); }
+.tut-actions { display: flex; gap: 12px; justify-content: center; }
+.tut-actions button {
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 9px 22px;
+  font-size: 14px;
+  letter-spacing: 2px;
+  transition: transform .15s, filter .15s;
+}
+.tut-actions button:hover { transform: translateY(-2px); filter: brightness(1.15); }
+#tutNext {
+  border: none;
+  background: linear-gradient(135deg, #ffd166, #ff9f43);
+  color: #241a05;
+  font-weight: 700;
+}
+#tutSkip {
+  border: 1px solid rgba(174, 191, 232, .45);
+  background: transparent;
+  color: #aebfe8;
+}
 
 @media (max-width: 560px) {
   h1 { font-size: 20px; letter-spacing: 3px; margin-top: 14px; }

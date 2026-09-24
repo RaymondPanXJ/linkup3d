@@ -13,11 +13,13 @@ var spaceChecks = require('./space-static-check.js');
 var timerChecks = require('./timer-static-check.js');
 var rankChecks = require('./rank-static-check.js');
 var themeChecks = require('./theme-static-check.js');
+var hintTests = require('./hint.define.js');
+var hintChecks = require('./hint-static-check.js');
 
 var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
-  spaceTests.runAll(), timerTests.runAll(), uiChecks.runChecks(),
+  spaceTests.runAll(), timerTests.runAll(), hintTests.runAll(), uiChecks.runChecks(),
   spaceChecks.runChecks(), timerChecks.runChecks(), rankChecks.runChecks(),
-  themeChecks.runChecks());
+  themeChecks.runChecks(), hintChecks.runChecks());
 var pass = 0;
 
 results.forEach(function (r) {
