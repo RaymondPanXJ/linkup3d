@@ -1,12 +1,16 @@
 /**
  * link3d.js — 3D 连连看核心算法（纯函数，无依赖）
  *
- * 网格模型：采用「扩展网格」，即在 4x6 棋盘外围补一圈恒为空的边框格子，
+ * 网格模型：采用「扩展网格」，即在棋盘外围补一圈恒为空的边框格子，
  * 这样连线就可以绕到棋盘外侧（边界外绕线），符合经典连连看规则。
  *
- * 坐标：grid[r][c]，r ∈ [0, ROWS+1]，c ∈ [0, COLS+1]
- *   - r = 0 / ROWS+1 与 c = 0 / COLS+1 是边框（永远为空）
- *   - 棋盘实际格子为 r ∈ [1, ROWS]，c ∈ [1, COLS]
+ * 尺寸约定：棋盘尺寸由网格本身决定（rows = grid.length - 2，
+ * cols = grid[0].length - 2），所有路径/洗牌/发牌函数都从网格推导，
+ * 不依赖模块级常量。
+ *
+ * 坐标：grid[r][c]，r ∈ [0, rows+1]，c ∈ [0, cols+1]
+ *   - r = 0 / rows+1 与 c = 0 / cols+1 是边框（永远为空）
+ *   - 棋盘实际格子为 r ∈ [1, rows]，c ∈ [1, cols]
  * 取值：0 = 空；>0 = 图案编号（同编号即同一对图案）
  *
  * 该文件同时可在浏览器（window.Link3D）与 Node（module.exports）中使用。
@@ -20,20 +24,53 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  var ROWS = 4;
-  var COLS = 6;
-  var PAIRS = (ROWS * COLS) / 2;
+  // 默认难度：标准 4x6。仅作 createGrid/dealGrid 的默认参数，
+  // 运行期尺寸一律由网格本身推导（见「尺寸约定」）。
+  var DEFAULT_ROWS = 4;
+  var DEFAULT_COLS = 6;
+  // 保留只读常量以兼容既有外部引用（如 game.js 的 L.ROWS / L.COLS）
+  var ROWS = DEFAULT_ROWS;
+  var COLS = DEFAULT_COLS;
+  var PAIRS = (DEFAULT_ROWS * DEFAULT_COLS) / 2;
 
   /* ---------------------------------------------------------------- *
    * 基础工具
    * ---------------------------------------------------------------- */
 
-  /** 创建空网格（含外边框），返回 (ROWS+2) x (COLS+2) 的二维数组 */
-  function createGrid() {
+  function isDim(n) {
+    return typeof n === 'number' && isFinite(n) && Math.floor(n) === n && n > 0;
+  }
+
+  /** 校验棋盘内容尺寸合法且格子数为偶数（能恰好铺满成对的牌） */
+  function checkDims(rows, cols) {
+    if (!isDim(rows) || !isDim(cols)) {
+      throw new Error('invalid grid size: rows and cols must be positive integers');
+    }
+    if ((rows * cols) % 2 !== 0) {
+      throw new Error('invalid grid size: ' + rows + 'x' + cols +
+        ' has an odd number of cells, tiles cannot be paired');
+    }
+  }
+
+  /** 从扩展网格推导内容尺寸（网格本身决定尺寸） */
+  function gridSize(grid) {
+    if (!grid || typeof grid.length !== 'number' || grid.length < 3 ||
+        !grid[0] || typeof grid[0].length !== 'number' || grid[0].length < 3) {
+      throw new Error('invalid grid: expected an extended grid of at least 3x3');
+    }
+    return { rows: grid.length - 2, cols: grid[0].length - 2 };
+  }
+
+  /** 创建空网格（含外边框），返回 (rows+2) x (cols+2) 的二维数组。
+   *  无参调用等价于 createGrid(4, 6)，与旧行为完全一致。 */
+  function createGrid(rows, cols) {
+    if (rows === undefined) rows = DEFAULT_ROWS;
+    if (cols === undefined) cols = DEFAULT_COLS;
+    checkDims(rows, cols);
     var grid = [];
-    for (var r = 0; r < ROWS + 2; r++) {
+    for (var r = 0; r < rows + 2; r++) {
       var row = [];
-      for (var c = 0; c < COLS + 2; c++) row.push(0);
+      for (var c = 0; c < cols + 2; c++) row.push(0);
       grid.push(row);
     }
     return grid;
@@ -169,9 +206,10 @@
 
   /** 返回棋盘上所有占位格子的坐标列表 */
   function occupiedPositions(grid) {
+    var size = gridSize(grid);
     var list = [];
-    for (var r = 1; r <= ROWS; r++) {
-      for (var c = 1; c <= COLS; c++) {
+    for (var r = 1; r <= size.rows; r++) {
+      for (var c = 1; c <= size.cols; c++) {
         if (grid[r][c] > 0) list.push({ r: r, c: c });
       }
     }
@@ -180,9 +218,10 @@
 
   /** 找出场上任意一个「同图案且可连」的对子；无解时返回 null */
   function findSolvablePair(grid, rng) {
+    var size = gridSize(grid);
     var byValue = {};
-    for (var r = 1; r <= ROWS; r++) {
-      for (var c = 1; c <= COLS; c++) {
+    for (var r = 1; r <= size.rows; r++) {
+      for (var c = 1; c <= size.cols; c++) {
         var v = grid[r][c];
         if (v > 0) (byValue[v] = byValue[v] || []).push({ r: r, c: c });
       }
@@ -279,16 +318,23 @@
     return { grid: grid, attempts: attempts + 1, forced: false };
   }
 
-  /** 发一副新牌：满盘 24 张、12 对，且保证开局有解 */
-  function dealGrid(rng) {
-    var grid = createGrid();
+  /** 发一副新牌：满盘 rows*cols 张、rows*cols/2 对，且保证开局有解。
+   *  向后兼容：
+   *    dealGrid()            -> 4x6（旧行为）
+   *    dealGrid(rng)         -> 4x6，第一参数为函数时视为 rng（旧签名）
+   *    dealGrid(rows, cols, rng) -> 任意合法尺寸 */
+  function dealGrid(rows, cols, rng) {
+    if (typeof rows === 'function') { rng = rows; rows = undefined; }
+    if (rows === undefined) { rows = DEFAULT_ROWS; cols = DEFAULT_COLS; }
+    var grid = createGrid(rows, cols);
+    var pairs = (rows * cols) / 2;
     var values = [];
-    for (var v = 1; v <= PAIRS; v++) {
+    for (var v = 1; v <= pairs; v++) {
       values.push(v, v);
     }
     var cells = [];
-    for (var r = 1; r <= ROWS; r++) {
-      for (var c = 1; c <= COLS; c++) cells.push({ r: r, c: c });
+    for (var r = 1; r <= rows; r++) {
+      for (var c = 1; c <= cols; c++) cells.push({ r: r, c: c });
     }
     var perm = shuffled(values, rng);
     for (var i = 0; i < cells.length; i++) {
@@ -300,9 +346,10 @@
 
   /** 剩余未消除的牌数 */
   function countTiles(grid) {
+    var size = gridSize(grid);
     var n = 0;
-    for (var r = 1; r <= ROWS; r++) {
-      for (var c = 1; c <= COLS; c++) if (grid[r][c] > 0) n++;
+    for (var r = 1; r <= size.rows; r++) {
+      for (var c = 1; c <= size.cols; c++) if (grid[r][c] > 0) n++;
     }
     return n;
   }
@@ -321,10 +368,12 @@
   }
 
   return {
+    // 兼容保留：默认尺寸常量（新代码请使用 gridSize(grid) 从网格推导）
     ROWS: ROWS,
     COLS: COLS,
     PAIRS: PAIRS,
     createGrid: createGrid,
+    gridSize: gridSize,
     isFree: isFree,
     isSegmentClear: isSegmentClear,
     findDirectPath: findDirectPath,

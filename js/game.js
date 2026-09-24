@@ -6,9 +6,28 @@
   'use strict';
 
   var L = window.Link3D;
-  var ROWS = L.ROWS, COLS = L.COLS;
 
-  var EMOJIS = ['🍎', '🍇', '🍋', '🍉', '🚀', '🎲', '🐱', '🐼', '⚡', '🌙', '🍄', '🎈'];
+  /* ---------------- 难度 ---------------- */
+  var DIFFICULTIES = {
+    easy:   { rows: 4, cols: 4 },
+    normal: { rows: 4, cols: 6 },
+    hard:   { rows: 6, cols: 8 }
+  };
+  var DIFF_KEY = 'linkup3d.difficulty';
+
+  function loadDifficulty() {
+    var key = null;
+    try { key = localStorage.getItem(DIFF_KEY); } catch (e) { /* 无存储环境忽略 */ }
+    return DIFFICULTIES[key] ? key : 'normal';
+  }
+
+  var difficulty = loadDifficulty();
+
+  function currentDims() { return DIFFICULTIES[difficulty]; }
+
+  // 图案池需覆盖最大难度的对数（6x8 -> 24 对）
+  var EMOJIS = ['🍎', '🍇', '🍋', '🍉', '🚀', '🎲', '🐱', '🐼', '⚡', '🌙', '🍄', '🎈',
+                '🍒', '🥕', '🌵', '🎸', '⚽', '🏀', '🐸', '🦊', '🍭', '🎯', '🔔', '🌈'];
 
   /* ---------------- DOM ---------------- */
   var board = document.getElementById('board');
@@ -135,6 +154,8 @@
 
   /* ---------------- 布局（响应式） ---------------- */
   function layout() {
+    var dims = currentDims();
+    var ROWS = dims.rows, COLS = dims.cols;
     var padX = window.innerWidth < 560 ? 24 : 60;
     var hudH = document.querySelector('.hud').getBoundingClientRect().height;
     var titleH = document.querySelector('h1').getBoundingClientRect().height +
@@ -187,9 +208,11 @@
 
   /* ---------------- 建盘 ---------------- */
   function buildBoard() {
+    var dims = currentDims();
+    var ROWS = dims.rows, COLS = dims.cols;
     Object.keys(slots).forEach(function (k) { slots[k].remove(); delete slots[k]; });
     pathLayer.innerHTML = '';
-    grid = L.dealGrid();
+    grid = L.dealGrid(ROWS, COLS);
     for (var r = 1; r <= ROWS; r++) {
       for (var c = 1; c <= COLS; c++) {
         var v = grid[r][c];
@@ -402,5 +425,28 @@
   document.getElementById('again').addEventListener('click', restart);
   window.addEventListener('resize', layout);
 
+  /* ---------------- 难度选择 ---------------- */
+  var diffBtns = Array.prototype.slice.call(
+    document.querySelectorAll('#difficulty .diff-btn'));
+
+  function renderDifficulty() {
+    diffBtns.forEach(function (btn) {
+      var active = btn.dataset.key === difficulty;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
+  diffBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (btn.dataset.key === difficulty) return;
+      difficulty = btn.dataset.key;
+      try { localStorage.setItem(DIFF_KEY, difficulty); } catch (e) { /* 忽略 */ }
+      renderDifficulty();
+      restart();
+    });
+  });
+
+  renderDifficulty();
   restart();
 })();
