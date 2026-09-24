@@ -49,14 +49,23 @@ h1 {
 }
 
 /* ---------------- 状态栏 ---------------- */
+/* 窄屏收纳方案（issue #14）：HUD 固定两行 —— 第一行数值统计（hud-stats），
+   第二行控制项（hud-controls：难度/重新开始/音乐/静音）；行内 flex-wrap 兜底 */
 .hud {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 0 12px;
+  width: 100%;
+}
+.hud-stats, .hud-controls {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
   align-items: center;
-  margin-bottom: 10px;
-  padding: 0 12px;
 }
 .stat {
   background: rgba(23, 33, 66, .75);
@@ -365,20 +374,44 @@ button#rank:active { transform: translateY(1px); }
                transform: rotateX(-90deg);
                background: #0a1020; border-radius: 4px; }
 
-/* 悬停 / 选中：抬起 + 高亮（hover 不缩放牌体，避免闪烁） */
-.tile:hover .tile-spin { transform: translateZ(30px); }
+/* 悬停：抬起 + 高亮。仅真实悬停设备生效（触摸设备用下方 :active 反馈，
+   避免移动端 sticky-hover 卡住高亮态） */
+@media (hover: hover) {
+  .tile:hover .tile-spin { transform: translateZ(30px); }
+  .tile:hover .face.front { border-color: rgba(160, 210, 255, .9);
+                            box-shadow: 0 0 18px rgba(96, 165, 255, .45); }
+  .tile-slot:has(.tile:hover) .tile-shadow {
+    opacity: .3;
+    transform: translateZ(calc(var(--depth) * -0.5 - 34px)) scale(1.15);
+  }
+}
+/* 选中（保留：跨悬停/触摸通用） */
 .tile.selected .tile-spin { transform: translateZ(46px) rotateZ(-2deg); }
 .tile.selected .face.front {
   border-color: #ffd166;
   box-shadow: 0 0 26px rgba(255, 209, 102, .65), inset 0 0 18px rgba(255, 209, 102, .28);
 }
-.tile:hover .face.front { border-color: rgba(160, 210, 255, .9);
-                          box-shadow: 0 0 18px rgba(96, 165, 255, .45); }
-.tile-slot:has(.tile:hover) .tile-shadow,
 .tile-slot:has(.tile.selected) .tile-shadow {
   opacity: .3;
   transform: translateZ(calc(var(--depth) * -0.5 - 34px)) scale(1.15);
 }
+
+/* ---------------- 触摸适配（issue #14） ---------------- */
+/* ≥44px 触摸热区：视觉尺寸可更小，伪元素四周负 inset 外扩至至少 44px 参与命中
+   （inset 基于牌体自身百分比，扩出部分不越入邻格中心；窄格时恰好铺满整格）；
+   Z 向置于牌体中心平面之前，保证命中在牌体之上 */
+.tile::before {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - 44px) / 2));
+  transform: translateZ(calc(var(--depth) / 2 + 3px));
+}
+/* 触摸反馈态：下压 + 绿色描边，与桌面 hover（蓝色描边）明显区分 */
+.tile:active .tile-spin { transform: translateZ(14px) scale(.94); }
+.tile:active .face.front { border-color: #7dffb0;
+                           box-shadow: 0 0 18px rgba(125, 255, 176, .5); }
+/* 禁用双击缩放/双击命中延迟（不用 maximum-scale=1 硬锁缩放） */
+.tile, button, .diff-btn { touch-action: manipulation; }
 
 /* 非法配对：抖动 */
 .tile-slot.shake .tile-spin { animation: shake .42s ease; }
@@ -393,6 +426,13 @@ button#rank:active { transform: translateY(1px); }
 .tile-slot.removing .tile-spin {
   transition: transform .55s ease-in, opacity .55s ease-in;
   transform: rotateY(180deg) rotateX(50deg) scale(.15) translateZ(120px);
+  opacity: 0;
+}
+/* 移动端性能兜底：翻转动画降级为纯 fade（body.mobile-lite 由 game.js 按
+   pointer:coarse / UA 判定添加） */
+body.mobile-lite .tile-slot.removing .tile-spin {
+  transform: none;
+  transition: opacity .5s ease-in;
   opacity: 0;
 }
 
@@ -547,10 +587,47 @@ button#rank:active { transform: translateY(1px); }
   .stat .value { font-size: 17px; }
   .panel { padding: 26px 30px; }
   .hud { gap: 6px; }
-  .diff-btn { font-size: 11px; padding: 8px 9px; letter-spacing: 0; }
-  .mode-btn { font-size: 11px; padding: 8px 10px; letter-spacing: 0; }
+  .hud-stats, .hud-controls { gap: 6px; }
+  .diff-btn { font-size: 11px; padding: 8px 9px; letter-spacing: 0; min-height: 40px; }
+  .mode-btn { font-size: 11px; padding: 8px 10px; letter-spacing: 0; min-height: 40px; }
   button#restart { font-size: 13px; padding: 8px 16px; letter-spacing: 2px; }
   button#rank { font-size: 12px; padding: 8px 12px; letter-spacing: 1px; }
   .rank-panel { padding: 18px 14px; }
   .rank-table { font-size: 12px; }
+}
+
+/* 360px 竖屏断点（issue #14）：HUD 两行收纳 + modal 窄屏全屏化。
+   6×8 棋盘最小牌宽由 game.js layout() 保证（≤420px 时 cellW ≥32px 且不缩放场景） */
+@media (max-width: 420px) {
+  h1 { margin-top: 8px; }
+  .subtitle { margin-bottom: 8px; }
+  .hud { gap: 6px; margin-bottom: 6px; padding: 0 6px; }
+  .hud-stats, .hud-controls { gap: 5px; width: 100%; }
+  .stat { min-width: 60px; padding: 4px 6px; }
+  .stat .label { font-size: 10px; letter-spacing: 1px; }
+  .stat .value { font-size: 15px; }
+  .diff-btn { font-size: 10px; padding: 6px 6px; }
+  button#restart { font-size: 12px; padding: 6px 12px; letter-spacing: 1px; }
+  #stage { padding-bottom: 1vh; min-height: 260px; }
+  /* modal 面板窄屏全屏化 */
+  #overlay { align-items: stretch; justify-content: stretch; }
+  .panel {
+    width: 100%;
+    min-height: 100%;
+    border: none;
+    border-radius: 0;
+    transform: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .panel h2 { font-size: 24px; letter-spacing: 4px; }
+}
+
+/* 触摸设备：HUD 按钮保证 ≥44px 触摸热区 */
+@media (pointer: coarse) {
+  button#restart { min-height: 44px; }
+  .diff-btn { min-height: 44px; }
+  button#mute, button#music { width: 44px; height: 44px; }
 }
