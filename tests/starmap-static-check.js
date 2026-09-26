@@ -86,8 +86,11 @@ function runChecks() {
     /function win\(\)[\s\S]{0,600}?settleCampaignWin\(\); return; \}/.test(game));
   check('lose 分支：战役局调用 settleCampaignLoss',
     /function lose\(\)[\s\S]{0,800}campaignIdx !== null\) settleCampaignLoss\(\)/.test(game));
-  check('settleCampaignWin：starsFor 定星 + SV.recordResult + SV.save 存档',
-    /function settleCampaignWin\(\)[\s\S]{0,600}CP\.starsFor\(lv\.parSec, used\)[\s\S]{0,300}SV\.save\(storageSafe\(\),\s*SV\.recordResult\(campaignData, idx, stars, score, used\)\)/.test(game));
+  check('settleCampaignWin：starsFor 定星 + SV.recordResult + SV.save 存档后回写 campaignData',
+    /function settleCampaignWin\(\)[\s\S]{0,600}CP\.starsFor\(lv\.parSec, used\)[\s\S]{0,300}var nextData = SV\.recordResult\(campaignData, idx, stars, score, used\);[\s\S]{0,120}SV\.save\(storageSafe\(\), nextData\);[\s\S]{0,120}campaignData = nextData;/.test(game));
+  // 回归（issue #35 / PR #34 评审）：SV.save 返回布尔写盘状态，禁止赋值给数据变量
+  check('回归：game.js 不得出现 `= SV.save(` / `= CampaignSave.save(` 赋值模式',
+    !/=\s*SV\.save\(/.test(game) && !/=\s*CampaignSave\.save\(/.test(game));
   check('settleCampaignLoss 不写存档（函数体无 SV.save/recordResult）',
     (function () {
       var m = game.match(/function settleCampaignLoss\(\)[\s\S]*?\n  \}/);

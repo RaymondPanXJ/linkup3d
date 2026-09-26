@@ -1186,8 +1186,10 @@
     var lv = CP.LEVELS[idx];
     var used = tState.elapsedSec;
     var stars = CP.starsFor(lv.parSec, used);
-    campaignData = SV.save(storageSafe(),
-      SV.recordResult(campaignData, idx, stars, score, used));
+    // SV.save 返回写盘成败布尔，绝不能赋给数据变量（PR #34 评审修复）
+    var nextData = SV.recordResult(campaignData, idx, stars, score, used);
+    SV.save(storageSafe(), nextData);
+    campaignData = nextData;
     renderFinalStars(stars);
     showSettleButtons(isNextUnlocked(idx));
     showResult('通关 · ' + lv.name, '用时 ' + fmt(used) + ' · Par ' + fmt(lv.parSec));
