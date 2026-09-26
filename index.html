@@ -31,13 +31,13 @@
         <button type="button" class="diff-btn" data-key="hard">困难 6×8</button>
       </div>
       <button id="rank" type="button" aria-label="本地排行榜">排行</button>
+      <button id="campaign" type="button" aria-label="冰晶星云战役星图" aria-pressed="false">★ 战役</button>
       <button id="restart" type="button">重新开始</button>
       <button id="theme" type="button" aria-label="切换主题">◐</button>
       <button id="hint" type="button" aria-label="提示（每局 3 次）">💡 提示 <span id="hintCount">3</span></button>
       <button id="help" type="button" aria-label="重看新手引导">?</button>
       <button id="pause" type="button" aria-label="暂停（空格）" aria-pressed="false">⏸</button>
       <button id="music" type="button" aria-label="背景音乐">♪</button>
-      <button id="frostDebug" type="button" aria-label="巡猎者测试（临时调试，T5 移除）">❄ 测试</button>
       <button id="mute" type="button" aria-label="静音">🔊</button>
     </div>
   </div>
@@ -64,9 +64,16 @@
   <div id="overlay">
     <div class="panel">
       <h2 id="finalTitle">恭喜通关</h2>
+      <div id="finalStars" class="final-stars" aria-hidden="true">
+        <span class="fstar">★</span><span class="fstar">★</span><span class="fstar">★</span>
+      </div>
       <p class="final-score" id="finalScore">0</p>
       <p id="finalTime">用时 00:00</p>
-      <button id="again" type="button">再来一局</button>
+      <div class="settle-actions">
+        <button id="nextLevel" type="button" hidden>下一关</button>
+        <button id="again" type="button">再来一局</button>
+        <button id="toStarMap" type="button" hidden>星图</button>
+      </div>
     </div>
   </div>
 
@@ -83,6 +90,33 @@
         </thead>
         <tbody id="rankTbody"></tbody>
       </table>
+    </div>
+  </div>
+
+  <div id="starMap" role="dialog" aria-modal="true" aria-label="冰晶星云战役星图">
+    <div class="starmap-panel">
+      <div class="starmap-head">
+        <h2>冰晶星云</h2>
+        <button id="starMapClose" type="button" aria-label="关闭星图">✕</button>
+      </div>
+      <div id="starmapGrid" class="starmap-grid"></div>
+      <p class="starmap-rule">星级规则：用时 ≤ Par 得 3★ · ≤ Par×1.5 得 2★ · 通关得 1★</p>
+      <button id="starmapBack" type="button">返回游戏</button>
+    </div>
+  </div>
+
+  <div id="levelConfirm" role="dialog" aria-modal="true" aria-label="关卡确认">
+    <div class="confirm-card">
+      <h3 id="confirmTitle"></h3>
+      <p id="confirmInfo"></p>
+      <p id="confirmWarn" class="confirm-warn" hidden>当前对局尚未结束，进入关卡将重新开始本局。</p>
+      <div class="confirm-actions">
+        <button id="confirmCancel" type="button">取消</button>
+        <button id="confirmGo" type="button">进入关卡</button>
+      </div>
+    </div>
+  </div>
+
   <div id="tutorial" aria-hidden="true">
     <div class="tut-card" role="dialog" aria-modal="true" aria-labelledby="tutTitle">
       <h3 id="tutTitle"></h3>
@@ -108,6 +142,8 @@
   <script src="js/tutorial.js"></script>
   <script src="js/frost.js"></script>
   <script src="js/enemy.js"></script>
+  <script src="js/campaign.js"></script>
+  <script src="js/save.js"></script>
   <script src="js/game.js"></script>
 </body>
 </html>

@@ -43,16 +43,31 @@
    *   startAtMs       起跑时的时钟读数（running 且未暂停时有效）
    *   limitSec        限时模式总时长（无尽模式为 null）
    */
-  function create(mode) {
+  /* 创建初始状态。
+   * mode：未知值回退 endless。
+   * limitSec（issue #33 扩展）：仅 timed 生效的总时长（秒）。省略或非法
+   * （≤0 / 非整数 / 非有限）回退 LIMIT_SECONDS=120；endless 忽略该参。
+   * 缺省 create(mode) 行为与旧版完全一致。 */
+  function create(mode, limitSec) {
+    var m = normalizeMode(mode);
     return {
-      mode: normalizeMode(mode),
+      mode: m,
       running: false,
       paused: false,
       elapsedMs: 0,
       elapsedSec: 0,
       startAtMs: 0,
-      limitSec: normalizeMode(mode) === MODES.timed ? LIMIT_SECONDS : null
+      limitSec: m === MODES.timed ? normalizeLimitSec(limitSec) : null
     };
+  }
+
+  // limitSec 归一化：正整数采用，其余（undefined/0/负数/小数/NaN/Infinity）回退 120
+  function normalizeLimitSec(limitSec) {
+    if (typeof limitSec === 'number' && isFinite(limitSec) &&
+        Math.floor(limitSec) === limitSec && limitSec > 0) {
+      return limitSec;
+    }
+    return LIMIT_SECONDS;
   }
 
   /* 首次起跑：nowMs 为单调时钟读数（如 performance.now()）。

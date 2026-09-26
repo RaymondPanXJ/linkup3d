@@ -16,6 +16,8 @@
   var Hint = window.Hint;
   var FRZ = window.Frost;   // js/frost.js 冻冰状态层（issue #27）
   var ENM = window.Enemy;   // js/enemy.js 巡猎者大脑（issue #29）
+  var CP = window.Campaign;      // js/campaign.js 关卡数据/星级纯函数（issue #33）
+  var SV = window.CampaignSave;  // js/save.js 战役存档（storage 注入式，issue #33）
 
   /* ---------------- 难度 ---------------- */
   var DIFFICULTIES = {
@@ -67,7 +69,22 @@
   var rankTbody = document.getElementById('rankTbody');
   var rankClose = document.getElementById('rankClose');
   var themeBtn = document.getElementById('theme');
-  var frostBtn = document.getElementById('frostDebug');
+  var campaignBtn = document.getElementById('campaign');
+  var starMapEl = document.getElementById('starMap');
+  var starMapClose = document.getElementById('starMapClose');
+  var starmapGridEl = document.getElementById('starmapGrid');
+  var starmapBack = document.getElementById('starmapBack');
+  var levelConfirmEl = document.getElementById('levelConfirm');
+  var confirmTitleEl = document.getElementById('confirmTitle');
+  var confirmInfoEl = document.getElementById('confirmInfo');
+  var confirmWarnEl = document.getElementById('confirmWarn');
+  var confirmCancelBtn = document.getElementById('confirmCancel');
+  var confirmGoBtn = document.getElementById('confirmGo');
+  var finalStarsEl = document.getElementById('finalStars');
+  var nextLevelBtn = document.getElementById('nextLevel');
+  var toStarMapBtn = document.getElementById('toStarMap');
+  var timeLabelEl = document.getElementById('timeLabel');
+  var settleBtnIds = ['restart', 'hint', 'help', 'pause', 'rank'];
 
   /* ---------------- 主题（深空→浅色→霓虹 循环，issue #15） ---------------- */
   var THEME_KEY = 'linkup3d.theme';
@@ -320,6 +337,12 @@
   var tState = TM.create(mode);   // timer.js 纯函数状态
   var paused = false;
 
+  /* ---------------- 战役状态（issue #33 T5） ----------------
+   * campaignIdx：当前战役关卡索引（null = 自由模式）。战役局禁用模式/
+   * 难度按钮，胜利经 CampaignSave 存档；自由模式的 mode 偏好不被战役改写。 */
+  var campaignIdx = null;
+  var campaignData = SV.load(typeof localStorage !== 'undefined' ? localStorage : null);
+
   function nowMs() {
     return (window.performance && window.performance.now)
       ? window.performance.now() : Date.now();
@@ -357,6 +380,7 @@
   /* ---------------- 布局（响应式） ---------------- */
   function layout() {
     var dims = currentDims();
+    if (campaignIdx !== null) dims = CP.LEVELS[campaignIdx]; // 战役局：关卡表尺寸（issue #33）
     var ROWS = dims.rows, COLS = dims.cols;
     var padX = window.innerWidth < 560 ? 10 : 60;
     var hudH = document.querySelector('.hud').getBoundingClientRect().height;
@@ -436,10 +460,11 @@
   /* ---------------- 建盘 ---------------- */
   function buildBoard() {
     var dims = currentDims();
+    if (campaignIdx !== null) dims = CP.LEVELS[campaignIdx];
     var ROWS = dims.rows, COLS = dims.cols;
+    grid = L.dealGrid(ROWS, COLS);
     Object.keys(slots).forEach(function (k) { slots[k].remove(); delete slots[k]; });
     pathLayer.innerHTML = '';
-    grid = L.dealGrid(ROWS, COLS);
     board.setAttribute('role', 'grid');
     board.setAttribute('aria-label', ROWS + ' 行 ' + COLS + ' 列连连看棋盘');
     for (var r = 1; r <= ROWS; r++) {
@@ -696,7 +721,7 @@
     if (mode === TM.MODES.timed) {
       return tState.running
         ? fmt(tState.remainingSec)
-        : fmt(TM.LIMIT_SECONDS);
+        : fmt(tState.limitSec);
     }
     return fmt(tState.elapsedSec);
   }
@@ -793,6 +818,14 @@
     finalTitleEl.textContent = title;
     finalScoreEl.textContent = score;
     finalTimeEl.textContent = note;
+    if (campaignIdx === null) {
+      finalStarsEl.hidden = true;
+      finalStarsEl.classList.remove('show');
+      nextLevelBtn.hidden = true;
+      nextLevelBtn.disabled = true;
+      toStarMapBtn.hidden = true;
+      document.getElementById('again').textContent = '再来一局';
+    }
     setTimeout(function () { overlay.classList.add('show'); }, 700);
   }
 
@@ -802,6 +835,7 @@
     stopTimer();
     board.classList.add('won');
     recordRound(); // 通关结算写入排行榜（issue #13）
+    if (campaignIdx !== null) { settleCampaignWin(); return; }
     showResult('恭喜通关', '用时 ' + fmt(tState.elapsedSec));
   }
 
@@ -821,6 +855,7 @@
     }
     showResult('时间到', '得分 ' + score + ' · 剩余 ' +
       (L.countTiles(grid) / 2) + ' 对');
+    if (campaignIdx !== null) settleCampaignLoss();
   }
 
   function restart() {
@@ -830,11 +865,10 @@
     if (typeof frostState !== 'undefined') {
       frostState = FRZ.create();
       enemyState = null;
-      hunterEnabled = false;
       lastWarnSoundAt = 0;
-      renderFrostDebugBtn();
     }
     score = 0; combo = 0; maxCombo = 0; lastMatchAt = 0;
+    if (campaignIdx !== null) exitCampaign(); // 重新开始 = 退出战役局，回自由模式
     tState = TM.create(mode);
     paused = false;
     lastRoundTs = 0;
@@ -869,13 +903,9 @@
    */
   var frostState = FRZ.create();  // 冻冰状态（洗牌不换格子位置，坐标不变，洗牌后原样保留）
   var enemyState = null;          // null = 巡猎者未上线
-  var hunterEnabled = false;      // 「❄ 测试」调试开关（T5 关卡装载后移除）
   var lastWarnSoundAt = 0;        // 预警滴答节流：每秒至多一次
 
   // T4 临时调试参数：战役 L3「巡猎初鸣」（campaign.js LEVELS[3].hunter，正式装载归 T5）
-  var HUNTER_CADENCE_MS = 25000;
-  var HUNTER_TELEGRAPH_MS = 3000;
-
   function hunterCtx() {
     var tiles = {}, frozen = {};
     Object.keys(slots).forEach(function (k) { tiles[k] = true; });
@@ -930,6 +960,8 @@
     });
   }
 
+  var HUNTER_TELEGRAPH_MS = 3000; // 预警 3s（issue #29 定稿，供 enemy.tick 兜底）
+
   function handleEnemyEvent(ev, now) {
     if (ev.type === 'telegraph') {
       frostState = FRZ.telegraph(frostState, ev.r, ev.c, now, HUNTER_TELEGRAPH_MS);
@@ -968,42 +1000,237 @@
 
   setInterval(onHunterTick, 250); // 沿用现有 setInterval 心跳模式（同 onTimerTick）
 
-  function startHunter(immediate) {
-    var now = Date.now();
-    if (immediate) {
-      // 把创建时刻回拨一个周期，使首个行动对齐到现在，走真实 tick/事件管线选目标
-      enemyState = ENM.create(HUNTER_CADENCE_MS, HUNTER_TELEGRAPH_MS, now - HUNTER_CADENCE_MS);
-      var res = ENM.tick(enemyState, now, hunterCtx());
-      enemyState = res.state;
-      res.events.forEach(function (ev) { handleEnemyEvent(ev, now); });
+
+  /* ---------------- 战役：星图 / 关卡装载 / 结算存档（issue #33 T5） ----------------
+   * 状态机：自由模式 ⇄ 战役局（campaignIdx 非空）。星图节点点击（仅解锁关）→
+   * 确认弹层 → enterCampaign 装载盘面/预冻/巡猎/时限 → win/lose 经
+   * settleCampaignWin / settleCampaignLoss 结算（胜利 recordResult+save 存档，
+   * 失败不存档）；restart/星图[返回游戏] 退出战役回自由模式。 */
+  var confirmIdx = null;
+
+  function storageSafe() {
+    try { return typeof localStorage !== 'undefined' ? localStorage : null; }
+    catch (e) { return null; }
+  }
+  function refreshCampaignData() {
+    campaignData = SV.load(storageSafe());
+  }
+
+  /* 模式/难度/重开/提示/帮助/排行/暂停按钮：战役期间禁用（主题/音乐/静音保留） */
+  function setCampaignControlsDisabled(dis) {
+    diffBtns.concat(modeBtns).forEach(function (btn) {
+      btn.disabled = dis;
+      if (dis) btn.title = '战役进行中';
+      else btn.removeAttribute('title');
+    });
+    settleBtnIds.forEach(function (id) {
+      var b = document.getElementById(id);
+      if (!b) return;
+      b.disabled = dis;
+      if (dis) b.title = '战役进行中';
+      else b.removeAttribute('title');
+    });
+  }
+
+  function syncCampaignTimeUi() {
+    if (campaignIdx === null) return;
+    if (mode === TM.MODES.timed) {
+      timeLabelEl.textContent = '剩余';
+      campaignBtn.setAttribute('aria-pressed', 'true');
     } else {
-      enemyState = ENM.create(HUNTER_CADENCE_MS, HUNTER_TELEGRAPH_MS, now);
+      timeLabelEl.textContent = '用时';
+      campaignBtn.setAttribute('aria-pressed', 'false');
     }
   }
 
-  function renderFrostDebugBtn() {
-    frostBtn.classList.toggle('on', hunterEnabled);
-    frostBtn.setAttribute('aria-pressed', hunterEnabled ? 'true' : 'false');
+  function renderStarMap() {
+    var total = CP.LEVELS.length;
+    var unlockedIdx = total;
+    for (var u = 0; u < total; u++) {
+      if (CP.isUnlocked(u, campaignData)) unlockedIdx = u;
+    }
+    starmapGridEl.innerHTML = '';
+    for (var i = 0; i < total; i++) {
+      var lv = CP.LEVELS[i];
+      var unlocked = CP.isUnlocked(i, campaignData);
+      var entry = campaignData.levels[String(i)];
+      var stars = entry ? entry.stars : 0;
+      var node = document.createElement('button');
+      node.type = 'button';
+      node.className = 'starmap-node ' + (unlocked ? 'unlocked' : 'locked') +
+        (i === unlockedIdx && campaignIdx === null ? ' current' : '');
+      node.dataset.idx = String(i);
+      if (!unlocked) node.disabled = true;
+      var status = campaignIdx === i ? '进行中' : unlocked ? '可玩' : '未解锁';
+      node.setAttribute('aria-label',
+        '第' + (i + 1) + '关 ' + lv.name + ' ' + status + ' ' + stars + '星');
+      var meta = lv.rows + '×' + lv.cols + ' · ' + lv.pairs + ' 对 · ' +
+        (lv.timeLimitSec > 0 ? '限时 ' + fmt(lv.timeLimitSec) : '无尽') +
+        ' · Par ' + fmt(lv.parSec);
+      var starHtml = '';
+      for (var s = 1; s <= 3; s++) {
+        starHtml += '<span class="' + (s <= stars ? 'on' : 'off') + '">★</span>';
+      }
+      node.innerHTML =
+        '<span class="node-index" aria-hidden="true">' + (unlocked ? (i + 1) : '🔒') + '</span>' +
+        '<span class="node-main"><span class="node-name">' + lv.name + '</span>' +
+        '<span class="node-meta">' + meta + '</span></span>' +
+        '<span class="node-stars" aria-hidden="true">' + starHtml + '</span>';
+      starmapGridEl.appendChild(node);
+    }
   }
 
-  frostBtn.addEventListener('click', function () {
-    hunterEnabled = !hunterEnabled;
-    if (hunterEnabled) {
-      startHunter(true); // 启动并按巡猎参数立即对随机格登记预警，便于人工验证
-      showToast('巡猎者已上线（测试）');
+  function openStarMap() {
+    refreshCampaignData();
+    renderStarMap();
+    starMapEl.classList.add('show');
+  }
+  function closeStarMap() { starMapEl.classList.remove('show'); }
+
+  function openLevelConfirm(i) {
+    confirmIdx = i;
+    var lv = CP.LEVELS[i];
+    confirmTitleEl.textContent = '第' + (i + 1) + '关 · ' + lv.name;
+    confirmInfoEl.textContent = lv.rows + '×' + lv.cols + ' · ' + lv.pairs + ' 对 · ' +
+      (lv.timeLimitSec > 0 ? '限时 ' + fmt(lv.timeLimitSec) : '无尽') +
+      ' · Par ' + fmt(lv.parSec) + (lv.frost.length ? ' · 预冻 ' + lv.frost.length + ' 格' : '') +
+      (lv.hunter ? ' · 巡猎者' : '');
+    confirmWarnEl.hidden = !(running || overlay.classList.contains('show'));
+    levelConfirmEl.classList.add('show');
+  }
+  function closeLevelConfirm() { levelConfirmEl.classList.remove('show'); }
+
+  function enterCampaign(i) {
+    campaignIdx = i;
+    gen++;
+    stopTimer();
+    if (paused) resumeGame();
+    var lv = CP.LEVELS[i];
+    mode = lv.timeLimitSec > 0 ? TM.MODES.timed : TM.MODES.endless;
+    setCampaignControlsDisabled(true);
+    syncCampaignTimeUi();
+    score = 0; combo = 0; maxCombo = 0; lastMatchAt = 0;
+    tState = TM.create(mode, lv.timeLimitSec > 0 ? lv.timeLimitSec : undefined);
+    hintsLeft = Hint.HINTS_PER_GAME;
+    clearHintHighlight();
+    renderHintBtn();
+    bestStat.classList.remove('record');
+    selected = null; busy = false; running = true;
+    board.classList.remove('won');
+    overlay.classList.remove('show');
+    finalStarsEl.classList.remove('show');
+    refreshBest();
+    buildBoard();
+    // 预冻落位：无预警期，telegraph(过去时刻)→freeze 直链，冻结音只播一次
+    frostState = FRZ.create();
+    var t0 = Date.now() - 1;
+    lv.frost.forEach(function (p) {
+      frostState = FRZ.telegraph(frostState, p.r, p.c, t0 - 1, 1);
+      frostState = FRZ.freeze(frostState, p.r, p.c, t0).state;
+    });
+    if (lv.frost.length) SFX.freeze();
+    // 巡猎者：hunter 非空按关卡参数启动（时刻回拨一个周期，立即走真实 tick 管线选目标）
+    if (lv.hunter) {
+      var hn = Date.now();
+      enemyState = ENM.create(lv.hunter.cadenceMs, lv.hunter.telegraphMs,
+        hn - lv.hunter.cadenceMs);
+      var res = ENM.tick(enemyState, hn, hunterCtx());
+      enemyState = res.state;
+      res.events.forEach(function (ev) { handleEnemyEvent(ev, hn); });
     } else {
       enemyState = null;
-      // 停猎：清掉未生效的预警登记，已冻结格保留（仍可经消除邻格解冻）
-      frostState = { frozen: frostState.frozen, telegraphs: {} };
-      Object.keys(slots).forEach(function (k) {
-        slots[k].classList.remove('tile-frost-warn');
-      });
-      showToast('巡猎者已下线（测试）');
     }
-    renderFrostDebugBtn();
-  });
+    lastWarnSoundAt = 0;
+    syncFrostVisuals(Date.now());
+    finalTitleEl.textContent = '恭喜通关';
+    renderTime();
+    renderHud();
+    showToast('第' + (i + 1) + '关 · ' + lv.name);
+  }
 
-  renderFrostDebugBtn();
+  function exitCampaign() {
+    if (campaignIdx === null) return;
+    campaignIdx = null;
+    setCampaignControlsDisabled(false);
+    campaignBtn.setAttribute('aria-pressed', 'false');
+    timeLabelEl.textContent = mode === TM.MODES.timed ? '倒计时' : '用时';
+  }
+
+  function renderFinalStars(n) {
+    finalStarsEl.classList.remove('show');
+    Array.prototype.forEach.call(
+      finalStarsEl.querySelectorAll('.fstar'),
+      function (el) { el.classList.remove('lit'); });
+    void finalStarsEl.offsetWidth; // 强制重排，重触逐颗点亮过渡
+    finalStarsEl.classList.add('show');
+    Array.prototype.forEach.call(
+      finalStarsEl.querySelectorAll('.fstar'),
+      function (el, i) { if (i < n) el.classList.add('lit'); });
+  }
+
+  function showSettleButtons(next) {
+    finalStarsEl.hidden = false;
+    nextLevelBtn.hidden = !next;
+    nextLevelBtn.disabled = !next;
+    nextLevelBtn.textContent = '下一关';
+    toStarMapBtn.hidden = false;
+    document.getElementById('again').textContent = '重玩';
+  }
+
+  function isNextUnlocked(idx) {
+    return idx + 1 < CP.LEVELS.length && CP.isUnlocked(idx + 1, campaignData);
+  }
+
+  function settleCampaignWin() {
+    var idx = campaignIdx;
+    var lv = CP.LEVELS[idx];
+    var used = tState.elapsedSec;
+    var stars = CP.starsFor(lv.parSec, used);
+    // SV.save 返回写盘成败布尔，绝不能赋给数据变量（PR #34 评审修复）
+    var nextData = SV.recordResult(campaignData, idx, stars, score, used);
+    SV.save(storageSafe(), nextData);
+    campaignData = nextData;
+    renderFinalStars(stars);
+    showSettleButtons(isNextUnlocked(idx));
+    showResult('通关 · ' + lv.name, '用时 ' + fmt(used) + ' · Par ' + fmt(lv.parSec));
+  }
+
+  // 失败：不存档、不解锁下一关（campaignData 不写入，星图仍显示旧进度）
+  function settleCampaignLoss() {
+    renderFinalStars(0);
+    showSettleButtons(false);
+    document.getElementById('again').textContent = '重试';
+  }
+
+  campaignBtn.addEventListener('click', openStarMap);
+  starMapClose.addEventListener('click', closeStarMap);
+  starmapBack.addEventListener('click', function () {
+    closeStarMap();
+    if (campaignIdx !== null) exitCampaign(); // 退出战役：恢复自由模式（盘面保持）
+  });
+  starmapGridEl.addEventListener('click', function (ev) {
+    var node = ev.target.closest ? ev.target.closest('.starmap-node') : null;
+    if (!node || node.disabled) return; // 锁定关不响应（仅解锁关可入）
+    var i = parseInt(node.dataset.idx, 10);
+    if (!CP.isUnlocked(i, campaignData)) return; // 以存档态复核解锁
+    closeStarMap();
+    openLevelConfirm(i);
+  });
+  confirmCancelBtn.addEventListener('click', closeLevelConfirm);
+  confirmGoBtn.addEventListener('click', function () {
+    closeLevelConfirm();
+    if (confirmIdx !== null) enterCampaign(confirmIdx);
+  });
+  nextLevelBtn.addEventListener('click', function () {
+    var next = campaignIdx + 1;
+    if (campaignIdx !== null && CP.isUnlocked(next, campaignData)) {
+      enterCampaign(next);
+    }
+  });
+  toStarMapBtn.addEventListener('click', function () {
+    if (campaignIdx !== null) exitCampaign();
+    openStarMap();
+  });
 
   /* ---------------- 难度选择 ---------------- */
   var diffBtns = Array.prototype.slice.call(
