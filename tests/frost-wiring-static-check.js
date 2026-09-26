@@ -69,9 +69,14 @@ function runChecks() {
     /FRZ\.countFrozen\(frostState\) < FRZ\.MAX_FROZEN/.test(game));
   check('restart 复位冻冰/敌人状态（frostState = FRZ.create()）',
     /function restart\(\)[\s\S]{0,600}frostState = FRZ\.create\(\)/.test(game));
-  check('洗牌不换格位：frostState 原样保留（无坐标重映射）',
-    /function doShuffle\(\)[\s\S]{0,400}shuffleGrid\(grid\)/.test(game) &&
-    !/frostState = .*shuffle/i.test(game));
+  // issue #39 裁决1 推翻原「frostState 原样保留」口径：洗牌全场解冻（保底不看冰冻，
+  // 冻结封锁点位会使「洗牌后必有解」失效）。断言改为洗牌路径重置冻结并清三态类。
+  check('洗牌全场解冻（issue #39 裁决1）：doShuffle 重置 frostState 并清 frozen/warn 类 + toast',
+    /function doShuffle\(\)[\s\S]{0,400}frostState = FRZ\.create\(\)/.test(game) &&
+    /function doShuffle\(\)[\s\S]{0,600}classList\.remove\('tile-frozen'\)/.test(game) &&
+    /function doShuffle\(\)[\s\S]{0,600}classList\.remove\('tile-frost-warn'\)/.test(game) &&
+    /function doShuffle\(\)[\s\S]{0,600}showToast\('搅动星尘,寒冰消融'\)/.test(game) &&
+    /function doShuffle\(\)[\s\S]{0,800}shuffleGrid\(grid\)/.test(game));
   check('音效接线：freeze/thaw/warn 三个新声部存在且在事件分支触发',
     /freeze: function/.test(game) && /thaw: function/.test(game) && /warn: function/.test(game) &&
     /SFX\.freeze\(\)/.test(game) && /SFX\.thaw\(\)/.test(game) && /SFX\.warn\(\)/.test(game));

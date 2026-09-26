@@ -35,55 +35,55 @@
   var LEVELS = [
     {
       id: 0, name: '冷眠醒转', rows: 4, cols: 4, pairs: 8,
-      timeLimitSec: 0, parSec: 60,
+      timeLimitSec: 0, parSec: 35,
       frost: [], hunter: null
     },
     {
       id: 1, name: '微光航道', rows: 4, cols: 6, pairs: 12,
-      timeLimitSec: 180, parSec: 90,
+      timeLimitSec: 180, parSec: 55,
       frost: [], hunter: null
     },
     {
       id: 2, name: '霜纹初现', rows: 4, cols: 6, pairs: 12,
-      timeLimitSec: 180, parSec: 100,
+      timeLimitSec: 180, parSec: 60,
       frost: [{ r: 2, c: 2 }, { r: 3, c: 5 }], hunter: null
     },
     {
       id: 3, name: '巡猎初鸣', rows: 4, cols: 6, pairs: 12,
-      timeLimitSec: 240, parSec: 150,
+      timeLimitSec: 240, parSec: 90,
       frost: [], hunter: { cadenceMs: 25000, telegraphMs: 3000 }
     },
     {
       id: 4, name: '冰湖', rows: 4, cols: 6, pairs: 12,
-      timeLimitSec: 240, parSec: 150,
+      timeLimitSec: 240, parSec: 90,
       frost: [], hunter: { cadenceMs: 20000, telegraphMs: 3000 }
     },
     {
       id: 5, name: '双子冰缝', rows: 6, cols: 8, pairs: 24,
-      timeLimitSec: 300, parSec: 200,
+      timeLimitSec: 300, parSec: 120,
       frost: [{ r: 2, c: 2 }, { r: 2, c: 7 }, { r: 5, c: 2 }, { r: 5, c: 7 }],
       hunter: null
     },
     {
       id: 6, name: '极夜', rows: 6, cols: 8, pairs: 24,
-      timeLimitSec: 360, parSec: 240,
+      timeLimitSec: 360, parSec: 145,
       frost: [], hunter: { cadenceMs: 30000, telegraphMs: 3000 }
     },
     {
       id: 7, name: '白毛风', rows: 6, cols: 8, pairs: 24,
-      timeLimitSec: 360, parSec: 260,
+      timeLimitSec: 360, parSec: 155,
       frost: [], hunter: { cadenceMs: 22000, telegraphMs: 3000 }
     },
     {
       id: 8, name: '冰下回声', rows: 6, cols: 8, pairs: 24,
-      timeLimitSec: 420, parSec: 300,
+      timeLimitSec: 420, parSec: 180,
       frost: [{ r: 3, c: 3 }, { r: 4, c: 6 }],
       hunter: { cadenceMs: 18000, telegraphMs: 3000 }
     },
     {
       id: 9, name: '星核之眼', rows: 6, cols: 8, pairs: 24,
-      timeLimitSec: 480, parSec: 340,
-      frost: [], hunter: { cadenceMs: 15000, telegraphMs: 2500 }
+      timeLimitSec: 480, parSec: 205,
+      frost: [], hunter: { cadenceMs: 18000, telegraphMs: 2500 }
     }
   ];
 
