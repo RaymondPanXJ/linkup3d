@@ -1,6 +1,6 @@
 {
   "name": "linkup3d",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "零依赖网页版 3D 连连看（纯原生 JS + CSS 3D）",
   "private": true,
   "scripts": {
