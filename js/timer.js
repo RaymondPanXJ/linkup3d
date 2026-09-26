@@ -1,1 +1,163 @@
-LyoqCiAqIHRpbWVyLmpzIOKAlCDorqHml7blmajnuq/lh73mlbDvvIjml6AgRE9NIC8g5pegIERhdGUubm93IOS+nei1lu+8jOa1j+iniOWZqCArIE5vZGUg5Y+M55So77yJCiAqCiAqIOinhOWIme+8iOWvueW6lCBpc3N1ZSAjMTLvvInvvJoKICogICAtIOaXoOWwveaooeW8j++8muato+iuoeaXtu+8jGVsYXBzZWQg56eS5pWw6YCS5aKe77yM5rC45LiN6LaF5pe277ybCiAqICAgLSDpmZDml7bmqKHlvI/vvJrmgLvml7bplb8gTElNSVRfU0VDT05EUyA9IDEyMCDnp5LvvIxyZW1haW5pbmcg5YCS5omj77yM5b2S6Zu25Yik6LSf77ybCiAqICAgLSDmmoLlgZzooaXlgb/vvJrmmoLlgZzml7borrDlvZUgcGF1c2VkRWxhcHNlZO+8jOaBouWkjeWQjiBlbGFwc2VkIOS7juaaguWBnOeCuee7p+e7re+8jAogKiAgICAg5pqC5YGc5pyf6Ze05LiN5raI6ICX5pe26Ze077yI5LiN5YCS5omj44CB5LiN57Sv56ev77yJ77ybCiAqICAgLSDorabnpLrvvJrpmZDml7bmqKHlvI8gcmVtYWluaW5nIDw9IFdBUk5fU0VDT05EUygxMCkg5LiU5pyq57uT5p2f5pe26L+b5YWl6K2m56S65oCB44CCCiAqCiAqIOeKtuaAgeWvueixoeS4uuaZrumAmuaVsOaNru+8iOWPr+W6j+WIl+WMlu+8ie+8jOaJgOacieWHveaVsOWdh+S4uue6r+WHveaVsO+8mgogKiDovpPlhaXnirbmgIEgKyDljZXosIPml7bpkp/or7vmlbDvvIjmr6vnp5LvvInvvIzov5Tlm57mlrDnirbmgIHjgIIKICoKICog6K+l5paH5Lu25ZCM5pe25Y+v5Zyo5rWP6KeI5Zmo77yId2luZG93LlRpbWVy77yJ5LiOIE5vZGXvvIhtb2R1bGUuZXhwb3J0c++8ieS4reS9v+eUqOOAggogKi8KKGZ1bmN0aW9uIChyb290LCBmYWN0b3J5KSB7CiAgaWYgKHR5cGVvZiBtb2R1bGUgPT09ICdvYmplY3QnICYmIG1vZHVsZS5leHBvcnRzKSB7CiAgICBtb2R1bGUuZXhwb3J0cyA9IGZhY3RvcnkoKTsKICB9IGVsc2UgewogICAgcm9vdC5UaW1lciA9IGZhY3RvcnkoKTsKICB9Cn0pKHR5cGVvZiBzZWxmICE9PSAndW5kZWZpbmVkJyA/IHNlbGYgOiB0aGlzLCBmdW5jdGlvbiAoKSB7CiAgJ3VzZSBzdHJpY3QnOwoKICB2YXIgTElNSVRfU0VDT05EUyA9IDEyMDsgLy8g6ZmQ5pe25qih5byP5oC75pe26ZW/CiAgdmFyIFdBUk5fU0VDT05EUyA9IDEwOyAgIC8vIOWAkuiuoeaXtuitpuekuumYiOWAvO+8iOWJqeS9mSDiiaQg6K+l5YC86L+b5YWl6K2m56S65oCB77yJCgogIC8vIOaooeW8j+W4uOmHj+S4juaMgeS5heWMlgogIHZhciBNT0RFUyA9IHsgZW5kbGVzczogJ2VuZGxlc3MnLCB0aW1lZDogJ3RpbWVkJyB9OwogIHZhciBNT0RFX0tFWSA9ICdsaW5rdXAzZC5tb2RlJzsKCiAgZnVuY3Rpb24gbm9ybWFsaXplTW9kZShtb2RlKSB7CiAgICByZXR1cm4gTU9ERVNbbW9kZV0gPyBtb2RlIDogTU9ERVMuZW5kbGVzczsKICB9CgogIC8qIOWIm+W7uuS4gOS4quWIneWni+iuoeaXtueKtuaAgeOAgm1vZGU6ICdlbmRsZXNzJyB8ICd0aW1lZCfjgIIKICAgKiDlrZfmrrXvvJoKICAgKiAgIG1vZGUgICAgICAgICAgICDlvZPliY3mqKHlvI8KICAgKiAgIHJ1bm5pbmcgICAgICAgICDmmK/lkKblt7Lotbfot5HvvIjpppbmrKHmnInmlYjkuqTkupLlkI7nva4gdHJ1Ze+8iQogICAqICAgcGF1c2VkICAgICAgICAgIOaYr+WQpuWkhOS6juaaguWBnAogICAqICAgZWxhcHNlZFNlYyAgICAgIOW3sueUqOaXtu+8iOenku+8jOWQkeS4i+WPluaVtO+8m+aaguWBnC/otoXml7blkI7lhrvnu5PvvIkKICAgKiAgIGVsYXBzZWRNcyAgICAgICDlt7LnlKjml7bvvIjmr6vnp5LvvIzmmoLlgZwv6LaF5pe25ZCO5Ya757uT5Li65pqC5YGc54K577yJCiAgICogICBzdGFydEF0TXMgICAgICAg6LW36LeR5pe255qE5pe26ZKf6K+75pWw77yIcnVubmluZyDkuJTmnKrmmoLlgZzml7bmnInmlYjvvIkKICAgKiAgIGxpbWl0U2VjICAgICAgICDpmZDml7bmqKHlvI/mgLvml7bplb/vvIjml6DlsL3mqKHlvI/kuLogbnVsbO+8iQogICAqLwogIGZ1bmN0aW9uIGNyZWF0ZShtb2RlKSB7CiAgICByZXR1cm4gewogICAgICBtb2RlOiBub3JtYWxpemVNb2RlKG1vZGUpLAogICAgICBydW5uaW5nOiBmYWxzZSwKICAgICAgcGF1c2VkOiBmYWxzZSwKICAgICAgZWxhcHNlZE1zOiAwLAogICAgICBlbGFwc2VkU2VjOiAwLAogICAgICBzdGFydEF0TXM6IDAsCiAgICAgIGxpbWl0U2VjOiBub3JtYWxpemVNb2RlKG1vZGUpID09PSBNT0RFUy50aW1lZCA/IExJTUlUX1NFQ09ORFMgOiBudWxsCiAgICB9OwogIH0KCiAgLyog6aaW5qyh6LW36LeR77yabm93TXMg5Li65Y2V6LCD5pe26ZKf6K+75pWw77yI5aaCIHBlcmZvcm1hbmNlLm5vdygp77yJ44CCCiAgICog5bey5Zyo6K6h5pe25YiZ5Y6f5qC36L+U5Zue77yI5bmC562J77yJ44CCICovCiAgZnVuY3Rpb24gc3RhcnQoc3QsIG5vd01zKSB7CiAgICBpZiAoc3QucnVubmluZykgcmV0dXJuIHN0OwogICAgcmV0dXJuIGFzc2lnbihzdCwgewogICAgICBydW5uaW5nOiB0cnVlLAogICAgICBwYXVzZWQ6IGZhbHNlLAogICAgICBzdGFydEF0TXM6IG5vd01zLAogICAgICBlbGFwc2VkTXM6IDAsCiAgICAgIGVsYXBzZWRTZWM6IDAKICAgIH0pOwogIH0KCiAgLyog5q+PIHRpY2sg6LCD55So77yabm93TXMg5Li65b2T5YmN5pe26ZKf6K+75pWw44CCCiAgICog5pqC5YGcL+acqui1t+i3kS/lt7LotoXml7bml7YgZWxhcHNlZCDlhrvnu5PvvJvlkKbliJnnlLEgbm93TXMgLSBzdGFydEF0TXMg5o6o5a+844CCCiAgICog6L+U5Zue5paw54q25oCB77yI5ZCrIGVsYXBzZWRNcy9lbGFwc2VkU2VjL3JlbWFpbmluZ1NlYy93YXJuaW5nL2ZpbmlzaGVk77yJ44CCICovCiAgZnVuY3Rpb24gdGljayhzdCwgbm93TXMpIHsKICAgIGlmICghc3QucnVubmluZyB8fCBzdC5wYXVzZWQpIHJldHVybiB3aXRoRGVyaXZlZChzdCk7CiAgICB2YXIgZWxhcHNlZE1zID0gbm93TXMgLSBzdC5zdGFydEF0TXM7CiAgICBpZiAoZWxhcHNlZE1zIDwgMCkgZWxhcHNlZE1zID0gMDsKICAgIGlmIChzdC5saW1pdFNlYyAhPT0gbnVsbCAmJiBlbGFwc2VkTXMgPj0gc3QubGltaXRTZWMgKiAxMDAwKSB7CiAgICAgIGVsYXBzZWRNcyA9IHN0LmxpbWl0U2VjICogMTAwMDsgLy8g6LaF5pe25Ya757uT5Zyo6ZmQ5YC8CiAgICB9CiAgICByZXR1cm4gd2l0aERlcml2ZWQoYXNzaWduKHN0LCB7CiAgICAgIGVsYXBzZWRNczogZWxhcHNlZE1zLAogICAgICBlbGFwc2VkU2VjOiBNYXRoLmZsb29yKGVsYXBzZWRNcyAvIDEwMDApCiAgICB9KSk7CiAgfQoKICAvKiDmmoLlgZzvvJrlhrvnu5PlvZPliY0gZWxhcHNlZO+8jOiusOW9leaaguWBnOeCueOAgumdnui/kOihjOaAgeW5guetieOAgiAqLwogIGZ1bmN0aW9uIHBhdXNlKHN0LCBub3dNcykgewogICAgaWYgKCFzdC5ydW5uaW5nIHx8IHN0LnBhdXNlZCkgcmV0dXJuIHN0OwogICAgdmFyIGZyb3plbiA9IG5vd01zIC0gc3Quc3RhcnRBdE1zOwogICAgaWYgKGZyb3plbiA8IDApIGZyb3plbiA9IDA7CiAgICBpZiAoc3QubGltaXRTZWMgIT09IG51bGwgJiYgZnJvemVuID4gc3QubGltaXRTZWMgKiAxMDAwKSB7CiAgICAgIGZyb3plbiA9IHN0LmxpbWl0U2VjICogMTAwMDsKICAgIH0KICAgIHJldHVybiB3aXRoRGVyaXZlZChhc3NpZ24oc3QsIHsKICAgICAgcGF1c2VkOiB0cnVlLAogICAgICBlbGFwc2VkTXM6IGZyb3plbiwKICAgICAgZWxhcHNlZFNlYzogTWF0aC5mbG9vcihmcm96ZW4gLyAxMDAwKQogICAgfSkpOwogIH0KCiAgLyog5oGi5aSN77ya5bCGIHN0YXJ0QXRNcyDliY3np7vmmoLlgZzml7bplb/vvIhub3dNcyAtIOaaguWBnOeCuSBlbGFwc2VkTXPvvInvvIwKICAgKiDkvb/mgaLlpI3lkI4gZWxhcHNlZCDku47mmoLlgZzngrnov57nu63vvIzmmoLlgZzml7bplb/kuI3orqHlhaXnlKjml7bjgIIgKi8KICBmdW5jdGlvbiByZXN1bWUoc3QsIG5vd01zKSB7CiAgICBpZiAoIXN0LnJ1bm5pbmcgfHwgIXN0LnBhdXNlZCkgcmV0dXJuIHN0OwogICAgcmV0dXJuIHdpdGhEZXJpdmVkKGFzc2lnbihzdCwgewogICAgICBwYXVzZWQ6IGZhbHNlLAogICAgICBzdGFydEF0TXM6IG5vd01zIC0gc3QuZWxhcHNlZE1zCiAgICB9KSk7CiAgfQoKICAvKiDotoXml7bliKTlrprvvIjku4XpmZDml7bmqKHlvI/vvInvvJp0aWNrIOWQjueahOeKtuaAgSByZW1haW5pbmcgPT09IDAg5Y2z5Yik6LSf44CCICovCiAgZnVuY3Rpb24gaXNUaW1lb3V0KHN0KSB7CiAgICByZXR1cm4gc3QubGltaXRTZWMgIT09IG51bGwgJiYgIXN0LnBhdXNlZCAmJiBzdC5ydW5uaW5nICYmCiAgICAgICAgICAgc3QuZWxhcHNlZE1zID49IHN0LmxpbWl0U2VjICogMTAwMDsKICB9CgogIC8qIOWJqeS9meenkuaVsO+8muaXoOWwveaooeW8j+i/lOWbniBudWxs44CCICovCiAgZnVuY3Rpb24gcmVtYWluaW5nU2VjKHN0KSB7CiAgICBpZiAoc3QubGltaXRTZWMgPT09IG51bGwpIHJldHVybiBudWxsOwogICAgdmFyIHJlbSA9IHN0LmxpbWl0U2VjIC0gTWF0aC5mbG9vcihzdC5lbGFwc2VkTXMgLyAxMDAwKTsKICAgIHJldHVybiByZW0gPCAwID8gMCA6IHJlbTsKICB9CgogIC8qIOitpuekuuaAge+8mumZkOaXtuaooeW8j+OAgeW3sui1t+i3keOAgeacquaaguWBnOOAgeWJqeS9mSDiiaQgV0FSTl9TRUNPTkRT44CCICovCiAgZnVuY3Rpb24gaXNXYXJuaW5nKHN0KSB7CiAgICBpZiAoc3QubGltaXRTZWMgPT09IG51bGwgfHwgIXN0LnJ1bm5pbmcgfHwgc3QucGF1c2VkKSByZXR1cm4gZmFsc2U7CiAgICB2YXIgcmVtID0gcmVtYWluaW5nU2VjKHN0KTsKICAgIHJldHVybiByZW0gPD0gV0FSTl9TRUNPTkRTOwogIH0KCiAgLyog5YaF6YOo77ya6ZmE5Yqg5rS+55Sf5a2X5q6177yIcmVtYWluaW5nU2VjL3dhcm5pbmcvZmluaXNoZWTvvInvvIzkvr/kuo4gVUkg55u05o6l5raI6LS544CCICovCiAgZnVuY3Rpb24gd2l0aERlcml2ZWQoc3QpIHsKICAgIHJldHVybiBhc3NpZ24oc3QsIHsKICAgICAgcmVtYWluaW5nU2VjOiByZW1haW5pbmdTZWMoc3QpLAogICAgICB3YXJuaW5nOiBpc1dhcm5pbmcoc3QpLAogICAgICBmaW5pc2hlZDogaXNUaW1lb3V0KHN0KQogICAgfSk7CiAgfQoKICBmdW5jdGlvbiBhc3NpZ24odGFyZ2V0LCBwYXRjaCkgewogICAgdmFyIG91dCA9IHt9OwogICAgZm9yICh2YXIgayBpbiB0YXJnZXQpIG91dFtrXSA9IHRhcmdldFtrXTsKICAgIGZvciAodmFyIGsyIGluIHBhdGNoKSBvdXRbazJdID0gcGF0Y2hbazJdOwogICAgcmV0dXJuIG91dDsKICB9CgogIHJldHVybiB7CiAgICBMSU1JVF9TRUNPTkRTOiBMSU1JVF9TRUNPTkRTLAogICAgV0FSTl9TRUNPTkRTOiBXQVJOX1NFQ09ORFMsCiAgICBNT0RFUzogTU9ERVMsCiAgICBNT0RFX0tFWTogTU9ERV9LRVksCiAgICBub3JtYWxpemVNb2RlOiBub3JtYWxpemVNb2RlLAogICAgY3JlYXRlOiBjcmVhdGUsCiAgICBzdGFydDogc3RhcnQsCiAgICB0aWNrOiB0aWNrLAogICAgcGF1c2U6IHBhdXNlLAogICAgcmVzdW1lOiByZXN1bWUsCiAgICBpc1RpbWVvdXQ6IGlzVGltZW91dCwKICAgIHJlbWFpbmluZ1NlYzogcmVtYWluaW5nU2VjLAogICAgaXNXYXJuaW5nOiBpc1dhcm5pbmcKICB9Owp9KTsK
+/**
+ * timer.js — 计时器纯函数（无 DOM / 无 Date.now 依赖，浏览器 + Node 双用）
+ *
+ * 规则（对应 issue #12）：
+ *   - 无尽模式：正计时，elapsed 秒数递增，永不超时；
+ *   - 限时模式：总时长 LIMIT_SECONDS = 120 秒，remaining 倒扣，归零判负；
+ *   - 暂停补偿：暂停时记录 pausedElapsed，恢复后 elapsed 从暂停点继续，
+ *     暂停期间不消耗时间（不倒扣、不累积）；
+ *   - 警示：限时模式 remaining <= WARN_SECONDS(10) 且未结束时进入警示态。
+ *
+ * 状态对象为普通数据（可序列化），所有函数均为纯函数：
+ * 输入状态 + 单调时钟读数（毫秒），返回新状态。
+ *
+ * 该文件同时可在浏览器（window.Timer）与 Node（module.exports）中使用。
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) {
+    module.exports = factory();
+  } else {
+    root.Timer = factory();
+  }
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  var LIMIT_SECONDS = 120; // 限时模式总时长
+  var WARN_SECONDS = 10;   // 倒计时警示阈值（剩余 ≤ 该值进入警示态）
+
+  // 模式常量与持久化
+  var MODES = { endless: 'endless', timed: 'timed' };
+  var MODE_KEY = 'linkup3d.mode';
+
+  function normalizeMode(mode) {
+    return MODES[mode] ? mode : MODES.endless;
+  }
+
+  /* 创建一个初始计时状态。mode: 'endless' | 'timed'。
+   * 字段：
+   *   mode            当前模式
+   *   running         是否已起跑（首次有效交互后置 true）
+   *   paused          是否处于暂停
+   *   elapsedSec      已用时（秒，向下取整；暂停/超时后冻结）
+   *   elapsedMs       已用时（毫秒，暂停/超时后冻结为暂停点）
+   *   startAtMs       起跑时的时钟读数（running 且未暂停时有效）
+   *   limitSec        限时模式总时长（无尽模式为 null）
+   */
+  function create(mode) {
+    return {
+      mode: normalizeMode(mode),
+      running: false,
+      paused: false,
+      elapsedMs: 0,
+      elapsedSec: 0,
+      startAtMs: 0,
+      limitSec: normalizeMode(mode) === MODES.timed ? LIMIT_SECONDS : null
+    };
+  }
+
+  /* 首次起跑：nowMs 为单调时钟读数（如 performance.now()）。
+   * 已在计时则原样返回（幂等）。 */
+  function start(st, nowMs) {
+    if (st.running) return st;
+    return assign(st, {
+      running: true,
+      paused: false,
+      startAtMs: nowMs,
+      elapsedMs: 0,
+      elapsedSec: 0
+    });
+  }
+
+  /* 每 tick 调用：nowMs 为当前时钟读数。
+   * 暂停/未起跑/已超时时 elapsed 冻结；否则由 nowMs - startAtMs 推导。
+   * 返回新状态（含 elapsedMs/elapsedSec/remainingSec/warning/finished）。 */
+  function tick(st, nowMs) {
+    if (!st.running || st.paused) return withDerived(st);
+    var elapsedMs = nowMs - st.startAtMs;
+    if (elapsedMs < 0) elapsedMs = 0;
+    if (st.limitSec !== null && elapsedMs >= st.limitSec * 1000) {
+      elapsedMs = st.limitSec * 1000; // 超时冻结在限值
+    }
+    return withDerived(assign(st, {
+      elapsedMs: elapsedMs,
+      elapsedSec: Math.floor(elapsedMs / 1000)
+    }));
+  }
+
+  /* 暂停：冻结当前 elapsed，记录暂停点。非运行态幂等。 */
+  function pause(st, nowMs) {
+    if (!st.running || st.paused) return st;
+    var frozen = nowMs - st.startAtMs;
+    if (frozen < 0) frozen = 0;
+    if (st.limitSec !== null && frozen > st.limitSec * 1000) {
+      frozen = st.limitSec * 1000;
+    }
+    return withDerived(assign(st, {
+      paused: true,
+      elapsedMs: frozen,
+      elapsedSec: Math.floor(frozen / 1000)
+    }));
+  }
+
+  /* 恢复：将 startAtMs 前移暂停时长（nowMs - 暂停点 elapsedMs），
+   * 使恢复后 elapsed 从暂停点连续，暂停时长不计入用时。 */
+  function resume(st, nowMs) {
+    if (!st.running || !st.paused) return st;
+    return withDerived(assign(st, {
+      paused: false,
+      startAtMs: nowMs - st.elapsedMs
+    }));
+  }
+
+  /* 超时判定（仅限时模式）：tick 后的状态 remaining === 0 即判负。 */
+  function isTimeout(st) {
+    return st.limitSec !== null && !st.paused && st.running &&
+           st.elapsedMs >= st.limitSec * 1000;
+  }
+
+  /* 剩余秒数：无尽模式返回 null。 */
+  function remainingSec(st) {
+    if (st.limitSec === null) return null;
+    var rem = st.limitSec - Math.floor(st.elapsedMs / 1000);
+    return rem < 0 ? 0 : rem;
+  }
+
+  /* 警示态：限时模式、已起跑、未暂停、剩余 ≤ WARN_SECONDS。 */
+  function isWarning(st) {
+    if (st.limitSec === null || !st.running || st.paused) return false;
+    var rem = remainingSec(st);
+    return rem <= WARN_SECONDS;
+  }
+
+  /* 内部：附加派生字段（remainingSec/warning/finished），便于 UI 直接消费。 */
+  function withDerived(st) {
+    return assign(st, {
+      remainingSec: remainingSec(st),
+      warning: isWarning(st),
+      finished: isTimeout(st)
+    });
+  }
+
+  function assign(target, patch) {
+    var out = {};
+    for (var k in target) out[k] = target[k];
+    for (var k2 in patch) out[k2] = patch[k2];
+    return out;
+  }
+
+  return {
+    LIMIT_SECONDS: LIMIT_SECONDS,
+    WARN_SECONDS: WARN_SECONDS,
+    MODES: MODES,
+    MODE_KEY: MODE_KEY,
+    normalizeMode: normalizeMode,
+    create: create,
+    start: start,
+    tick: tick,
+    pause: pause,
+    resume: resume,
+    isTimeout: isTimeout,
+    remainingSec: remainingSec,
+    isWarning: isWarning
+  };
+});

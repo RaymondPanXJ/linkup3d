@@ -1,1 +1,138 @@
-IyEvdXNyL2Jpbi9lbnYgbm9kZQovKioKICogdGVzdHMvdGltZXIuZGVmaW5lLmpzIOKAlCBqcy90aW1lci5qcyDnuq/lh73mlbDnlKjkvovvvIhpc3N1ZSAjMTIg6K6h5pe25oyR5oiY5qih5byP77yJCiAqIE5vZGUg5LiO5rWP6KeI5Zmo5YWx55So77yb5rWP6KeI5Zmo5L6n6YCa6L+HIHdpbmRvdy5UaW1lciDkvb/nlKjlkIzkuIDmlq3oqIDjgIIKICovCihmdW5jdGlvbiAocm9vdCwgZmFjdG9yeSkgewogIGlmICh0eXBlb2YgbW9kdWxlID09PSAnb2JqZWN0JyAmJiBtb2R1bGUuZXhwb3J0cykgewogICAgbW9kdWxlLmV4cG9ydHMgPSBmYWN0b3J5KCk7CiAgfSBlbHNlIHsKICAgIHJvb3QuVGltZXJUZXN0cyA9IGZhY3RvcnkoKTsKICB9Cn0pKHR5cGVvZiBzZWxmICE9PSAndW5kZWZpbmVkJyA/IHNlbGYgOiB0aGlzLCBmdW5jdGlvbiAoKSB7CiAgJ3VzZSBzdHJpY3QnOwoKICB2YXIgVCA9ICh0eXBlb2YgbW9kdWxlID09PSAnb2JqZWN0JyAmJiBtb2R1bGUuZXhwb3J0cykKICAgID8gcmVxdWlyZSgnLi4vanMvdGltZXIuanMnKQogICAgOiByb290LlRpbWVyOwoKICB2YXIgY2FzZXMgPSBbXTsKICBmdW5jdGlvbiB0ZXN0KG5hbWUsIGZuKSB7IGNhc2VzLnB1c2goeyBuYW1lOiBuYW1lLCBmbjogZm4gfSk7IH0KCiAgZnVuY3Rpb24gZXEoYWN0dWFsLCBleHBlY3RlZCkgewogICAgaWYgKGFjdHVhbCAhPT0gZXhwZWN0ZWQpIHsKICAgICAgdGhyb3cgbmV3IEVycm9yKCdleHBlY3RlZCAnICsgSlNPTi5zdHJpbmdpZnkoZXhwZWN0ZWQpICsKICAgICAgICAnIGJ1dCBnb3QgJyArIEpTT04uc3RyaW5naWZ5KGFjdHVhbCkpOwogICAgfQogICAgcmV0dXJuICdvayc7CiAgfQoKICAvKiAxLiDmqKHlvI/lvZLkuIDljJYgKi8KICB0ZXN0KCdub3JtYWxpemVNb2RlIOacquefpeWAvOWbnumAgCBlbmRsZXNzJywgZnVuY3Rpb24gKCkgewogICAgcmV0dXJuIGVxKFQubm9ybWFsaXplTW9kZSgnYm9ndXMnKSwgJ2VuZGxlc3MnKSAmJgogICAgICAgICAgIGVxKFQubm9ybWFsaXplTW9kZSgndGltZWQnKSwgJ3RpbWVkJykgJiYKICAgICAgICAgICBlcShULm5vcm1hbGl6ZU1vZGUodW5kZWZpbmVkKSwgJ2VuZGxlc3MnKTsKICB9KTsKCiAgLyogMi4gY3JlYXRl77ya6ZmQ5pe2IDEyMHPvvIzml6DlsL3ml6DpmZDlgLwgKi8KICB0ZXN0KCdjcmVhdGUodGltZWQpIGxpbWl0U2VjPTEyMCAvIGNyZWF0ZShlbmRsZXNzKSBsaW1pdFNlYz1udWxsJywgZnVuY3Rpb24gKCkgewogICAgdmFyIHQgPSBULmNyZWF0ZSgndGltZWQnKSwgZSA9IFQuY3JlYXRlKCdlbmRsZXNzJyk7CiAgICByZXR1cm4gZXEodC5saW1pdFNlYywgMTIwKSAmJiBlcSh0LmVsYXBzZWRTZWMsIDApICYmICF0LnJ1bm5pbmcgJiYKICAgICAgICAgICBlcShlLmxpbWl0U2VjLCBudWxsKSAmJiBlcShULnJlbWFpbmluZ1NlYyhlKSwgbnVsbCk7CiAgfSk7CgogIC8qIDMuIHN0YXJ0IOW5guetiSAqLwogIHRlc3QoJ3N0YXJ0IOW5guetie+8mumHjeWkjSBzdGFydCDkuI3ph43nva7otbfngrknLCBmdW5jdGlvbiAoKSB7CiAgICB2YXIgcyA9IFQuc3RhcnQoVC5jcmVhdGUoJ2VuZGxlc3MnKSwgMTAwMCk7CiAgICB2YXIgczIgPSBULnN0YXJ0KHMsIDUwMDApOwogICAgcmV0dXJuIGVxKHMyLnN0YXJ0QXRNcywgMTAwMCkgJiYgczIucnVubmluZyA9PT0gdHJ1ZTsKICB9KTsKCiAgLyogNC4gdGljayDmraPorqHml7bvvIjml6DlsL3vvIkgKi8KICB0ZXN0KCd0aWNrIOaXoOWwveaooeW8j++8mmVsYXBzZWQg6ZqP5pe26ZKf6YCS5aKeJywgZnVuY3Rpb24gKCkgewogICAgdmFyIHMgPSBULnN0YXJ0KFQuY3JlYXRlKCdlbmRsZXNzJyksIDApOwogICAgcyA9IFQudGljayhzLCAzNDAwKTsKICAgIHJldHVybiBlcShzLmVsYXBzZWRTZWMsIDMpICYmIGVxKHMuZWxhcHNlZE1zLCAzNDAwKSAmJiAhcy5maW5pc2hlZDsKICB9KTsKCiAgLyogNS4gdGljayDpmZDml7blgJLorqHml7YgKi8KICB0ZXN0KCd0aWNrIOmZkOaXtuaooeW8j++8mnJlbWFpbmluZyA9IDEyMCAtIGVsYXBzZWQnLCBmdW5jdGlvbiAoKSB7CiAgICB2YXIgcyA9IFQuc3RhcnQoVC5jcmVhdGUoJ3RpbWVkJyksIDApOwogICAgcyA9IFQudGljayhzLCAzMDAwMCk7CiAgICByZXR1cm4gZXEocy5yZW1haW5pbmdTZWMsIDkwKSAmJiAhcy53YXJuaW5nICYmICFzLmZpbmlzaGVkOwogIH0pOwoKICAvKiA2LiDmmoLlgZzooaXlgb/vvJrmgaLlpI3lkI7kuI3lgJLmiaPmmoLlgZzml7bplb8gKi8KICB0ZXN0KCfmmoLlgZzooaXlgb/vvJrmmoLlgZwgNjBzIOWQjuaBouWkje+8jGVsYXBzZWQg5LuO5pqC5YGc54K56L+e57utJywgZnVuY3Rpb24gKCkgewogICAgdmFyIHMgPSBULnN0YXJ0KFQuY3JlYXRlKCd0aW1lZCcpLCAwKTsKICAgIHMgPSBULnRpY2socywgMjAwMDApOyAgICAgICAgICAvLyDnlKjml7YgMjBzCiAgICBzID0gVC5wYXVzZShzLCAyMDAwMCk7CiAgICBzID0gVC50aWNrKHMsIDgwMDAwKTsgICAgICAgICAgLy8g5pqC5YGc5pyf6Ze0IDYwc++8jGVsYXBzZWQg5Ya757uTCiAgICB2YXIgZnJvemVuID0gcy5lbGFwc2VkTXM7CiAgICBzID0gVC5yZXN1bWUocywgODAwMDApOwogICAgcyA9IFQudGljayhzLCA4NTAwMCk7ICAgICAgICAgIC8vIOaBouWkjeWQjuWPiOi1sCA1cwogICAgcmV0dXJuIGVxKGZyb3plbiwgMjAwMDApICYmIGVxKHMuZWxhcHNlZE1zLCAyNTAwMCkgJiYKICAgICAgICAgICBlcShzLnJlbWFpbmluZ1NlYywgOTUpOwogIH0pOwoKICAvKiA3LiDmmoLlgZzluYLnrYnvvJrmnKrotbfot5EgcGF1c2UgLyDph43lpI0gcGF1c2UgLyDmnKrmmoLlgZwgcmVzdW1lIOWdh+WuieWFqCAqLwogIHRlc3QoJ3BhdXNlL3Jlc3VtZSDluYLnrYnkuI7pnZ7ms5XmgIHlronlhagnLCBmdW5jdGlvbiAoKSB7CiAgICB2YXIgZnJlc2ggPSBULmNyZWF0ZSgndGltZWQnKTsKICAgIHZhciBhID0gVC5wYXVzZShmcmVzaCwgMTAwMCk7ICAgICAgICAgICAgICAvLyDmnKrotbfot5EKICAgIHZhciBiID0gVC5yZXN1bWUoZnJlc2gsIDEwMDApOyAgICAgICAgICAgICAvLyDmnKrmmoLlgZwKICAgIHZhciBzID0gVC5zdGFydChmcmVzaCwgMCk7CiAgICBzID0gVC5wYXVzZShzLCA1MDAwKTsKICAgIHZhciBhZ2FpbiA9IFQucGF1c2UocywgOTAwMCk7ICAgICAgICAgICAgICAvLyDph43lpI3mmoLlgZzkuI3np7vliqjmmoLlgZzngrkKICAgIHJldHVybiBlcShhLmVsYXBzZWRNcywgMCkgJiYgZXEoYi5lbGFwc2VkTXMsIDApICYmCiAgICAgICAgICAgZXEoYWdhaW4uZWxhcHNlZE1zLCBzLmVsYXBzZWRNcyk7CiAgfSk7CgogIC8qIDguIOi2heaXtuWIpOWumu+8muaBsOWlveW9kumbtuWIpOi0n++8jGVsYXBzZWQg5Ya757uT5Zyo6ZmQ5YC8ICovCiAgdGVzdCgn6ZmQ5pe25b2S6Zu277yaZmluaXNoZWQ9dHJ1ZSDkuJQgZWxhcHNlZCDlhrvnu5PlnKggMTIwcycsIGZ1bmN0aW9uICgpIHsKICAgIHZhciBzID0gVC5zdGFydChULmNyZWF0ZSgndGltZWQnKSwgMCk7CiAgICBzID0gVC50aWNrKHMsIDEzMDAwMCk7CiAgICByZXR1cm4gZXEocy5maW5pc2hlZCwgdHJ1ZSkgJiYgZXEoVC5pc1RpbWVvdXQocyksIHRydWUpICYmCiAgICAgICAgICAgZXEocy5lbGFwc2VkTXMsIDEyMDAwMCkgJiYgZXEocy5yZW1haW5pbmdTZWMsIDApOwogIH0pOwoKICAvKiA5LiDorabnpLrpmIjlgLzvvJriiaQxMHMg6L+b5YWl6K2m56S677yM5pqC5YGc5pe25LiN6K2m56S6ICovCiAgdGVzdCgn6K2m56S65oCB77ya5Ymp5L2ZIOKJpDEwcyDkuLogdHJ1Ze+8jOaaguWBnOacn+mXtOS4uiBmYWxzZScsIGZ1bmN0aW9uICgpIHsKICAgIHZhciBzID0gVC5zdGFydChULmNyZWF0ZSgndGltZWQnKSwgMCk7CiAgICBzID0gVC50aWNrKHMsIDEwOTk5OSk7CiAgICB2YXIgYmVmb3JlID0gcy53YXJuaW5nOyAgICAgICAgICAgICAgICAgICAgICAvLyDliankvZkgMTAuMDAxcyAtPiAxMHMgZmxvb3I/IGZsb29yKDEwOTk5OS8xMDAwKT0xMDkgLT4gcmVtIDExCiAgICBzID0gVC50aWNrKHMsIDExMDAwMCk7ICAgICAgICAgICAgICAgICAgICAgICAvLyByZW0gMTAKICAgIHZhciBhdCA9IHMud2FybmluZzsKICAgIHZhciBwID0gVC5wYXVzZShzLCAxMTAwMDApOwogICAgcmV0dXJuIGVxKGJlZm9yZSwgZmFsc2UpICYmIGVxKGF0LCB0cnVlKSAmJiBlcShwLndhcm5pbmcsIGZhbHNlKTsKICB9KTsKCiAgLyogMTAuIOaXoOWwveaooeW8j+awuOS4jei2heaXtuOAgeawuOS4jeitpuekuiAqLwogIHRlc3QoJ+aXoOWwveaooeW8j++8muS7u+aEj+aXtumVv+S4jei2heaXtuS4jeitpuekuicsIGZ1bmN0aW9uICgpIHsKICAgIHZhciBzID0gVC5zdGFydChULmNyZWF0ZSgnZW5kbGVzcycpLCAwKTsKICAgIHMgPSBULnRpY2socywgMzYwMDAwMCk7CiAgICByZXR1cm4gZXEocy5maW5pc2hlZCwgZmFsc2UpICYmIGVxKHMud2FybmluZywgZmFsc2UpICYmCiAgICAgICAgICAgZXEocy5yZW1haW5pbmdTZWMsIG51bGwpICYmIGVxKHMuZWxhcHNlZFNlYywgMzYwMCk7CiAgfSk7CgogIC8qIDExLiDmmoLlgZzkuK3nmoTotoXml7bovrnnlYzvvJrmmoLlgZzngrnlt7LotoXml7bliJnmgaLlpI3ljbPliKTotJ8gKi8KICB0ZXN0KCfotoXml7blkI7mmoLlgZzlho3mgaLlpI3ku43kv53mjIHotoXml7bmgIEnLCBmdW5jdGlvbiAoKSB7CiAgICB2YXIgcyA9IFQuc3RhcnQoVC5jcmVhdGUoJ3RpbWVkJyksIDApOwogICAgcyA9IFQudGljayhzLCAxMjUwMDApOyAgICAgLy8g6LaF5pe2CiAgICBzID0gVC5wYXVzZShzLCAxMjUwMDApOwogICAgcyA9IFQucmVzdW1lKHMsIDIwMDAwMCk7CiAgICBzID0gVC50aWNrKHMsIDIwMDAwMSk7CiAgICByZXR1cm4gZXEoVC5pc1RpbWVvdXQocyksIHRydWUpICYmIGVxKHMuZWxhcHNlZE1zLCAxMjAwMDApOwogIH0pOwoKICBmdW5jdGlvbiBydW5BbGwoKSB7CiAgICByZXR1cm4gY2FzZXMubWFwKGZ1bmN0aW9uIChjKSB7CiAgICAgIHRyeSB7CiAgICAgICAgcmV0dXJuIHsgbmFtZTogJ1t0aW1lcl0gJyArIGMubmFtZSwgcGFzczogdHJ1ZSwgZGV0YWlsOiBjLmZuKCkgfTsKICAgICAgfSBjYXRjaCAoZSkgewogICAgICAgIHJldHVybiB7IG5hbWU6ICdbdGltZXJdICcgKyBjLm5hbWUsIHBhc3M6IGZhbHNlLCBkZXRhaWw6IGUubWVzc2FnZSB9OwogICAgICB9CiAgICB9KTsKICB9CgogIHJldHVybiB7IHJ1bkFsbDogcnVuQWxsLCBjYXNlczogY2FzZXMgfTsKfSk7Cg==
+#!/usr/bin/env node
+/**
+ * tests/timer.define.js — js/timer.js 纯函数用例（issue #12 计时挑战模式）
+ * Node 与浏览器共用；浏览器侧通过 window.Timer 使用同一断言。
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) {
+    module.exports = factory();
+  } else {
+    root.TimerTests = factory();
+  }
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  var T = (typeof module === 'object' && module.exports)
+    ? require('../js/timer.js')
+    : root.Timer;
+
+  var cases = [];
+  function test(name, fn) { cases.push({ name: name, fn: fn }); }
+
+  function eq(actual, expected) {
+    if (actual !== expected) {
+      throw new Error('expected ' + JSON.stringify(expected) +
+        ' but got ' + JSON.stringify(actual));
+    }
+    return 'ok';
+  }
+
+  /* 1. 模式归一化 */
+  test('normalizeMode 未知值回退 endless', function () {
+    return eq(T.normalizeMode('bogus'), 'endless') &&
+           eq(T.normalizeMode('timed'), 'timed') &&
+           eq(T.normalizeMode(undefined), 'endless');
+  });
+
+  /* 2. create：限时 120s，无尽无限值 */
+  test('create(timed) limitSec=120 / create(endless) limitSec=null', function () {
+    var t = T.create('timed'), e = T.create('endless');
+    return eq(t.limitSec, 120) && eq(t.elapsedSec, 0) && !t.running &&
+           eq(e.limitSec, null) && eq(T.remainingSec(e), null);
+  });
+
+  /* 3. start 幂等 */
+  test('start 幂等：重复 start 不重置起点', function () {
+    var s = T.start(T.create('endless'), 1000);
+    var s2 = T.start(s, 5000);
+    return eq(s2.startAtMs, 1000) && s2.running === true;
+  });
+
+  /* 4. tick 正计时（无尽） */
+  test('tick 无尽模式：elapsed 随时钟递增', function () {
+    var s = T.start(T.create('endless'), 0);
+    s = T.tick(s, 3400);
+    return eq(s.elapsedSec, 3) && eq(s.elapsedMs, 3400) && !s.finished;
+  });
+
+  /* 5. tick 限时倒计时 */
+  test('tick 限时模式：remaining = 120 - elapsed', function () {
+    var s = T.start(T.create('timed'), 0);
+    s = T.tick(s, 30000);
+    return eq(s.remainingSec, 90) && !s.warning && !s.finished;
+  });
+
+  /* 6. 暂停补偿：恢复后不倒扣暂停时长 */
+  test('暂停补偿：暂停 60s 后恢复，elapsed 从暂停点连续', function () {
+    var s = T.start(T.create('timed'), 0);
+    s = T.tick(s, 20000);          // 用时 20s
+    s = T.pause(s, 20000);
+    s = T.tick(s, 80000);          // 暂停期间 60s，elapsed 冻结
+    var frozen = s.elapsedMs;
+    s = T.resume(s, 80000);
+    s = T.tick(s, 85000);          // 恢复后又走 5s
+    return eq(frozen, 20000) && eq(s.elapsedMs, 25000) &&
+           eq(s.remainingSec, 95);
+  });
+
+  /* 7. 暂停幂等：未起跑 pause / 重复 pause / 未暂停 resume 均安全 */
+  test('pause/resume 幂等与非法态安全', function () {
+    var fresh = T.create('timed');
+    var a = T.pause(fresh, 1000);              // 未起跑
+    var b = T.resume(fresh, 1000);             // 未暂停
+    var s = T.start(fresh, 0);
+    s = T.pause(s, 5000);
+    var again = T.pause(s, 9000);              // 重复暂停不移动暂停点
+    return eq(a.elapsedMs, 0) && eq(b.elapsedMs, 0) &&
+           eq(again.elapsedMs, s.elapsedMs);
+  });
+
+  /* 8. 超时判定：恰好归零判负，elapsed 冻结在限值 */
+  test('限时归零：finished=true 且 elapsed 冻结在 120s', function () {
+    var s = T.start(T.create('timed'), 0);
+    s = T.tick(s, 130000);
+    return eq(s.finished, true) && eq(T.isTimeout(s), true) &&
+           eq(s.elapsedMs, 120000) && eq(s.remainingSec, 0);
+  });
+
+  /* 9. 警示阈值：≤10s 进入警示，暂停时不警示 */
+  test('警示态：剩余 ≤10s 为 true，暂停期间为 false', function () {
+    var s = T.start(T.create('timed'), 0);
+    s = T.tick(s, 109999);
+    var before = s.warning;                      // 剩余 10.001s -> 10s floor? floor(109999/1000)=109 -> rem 11
+    s = T.tick(s, 110000);                       // rem 10
+    var at = s.warning;
+    var p = T.pause(s, 110000);
+    return eq(before, false) && eq(at, true) && eq(p.warning, false);
+  });
+
+  /* 10. 无尽模式永不超时、永不警示 */
+  test('无尽模式：任意时长不超时不警示', function () {
+    var s = T.start(T.create('endless'), 0);
+    s = T.tick(s, 3600000);
+    return eq(s.finished, false) && eq(s.warning, false) &&
+           eq(s.remainingSec, null) && eq(s.elapsedSec, 3600);
+  });
+
+  /* 11. 暂停中的超时边界：暂停点已超时则恢复即判负 */
+  test('超时后暂停再恢复仍保持超时态', function () {
+    var s = T.start(T.create('timed'), 0);
+    s = T.tick(s, 125000);     // 超时
+    s = T.pause(s, 125000);
+    s = T.resume(s, 200000);
+    s = T.tick(s, 200001);
+    return eq(T.isTimeout(s), true) && eq(s.elapsedMs, 120000);
+  });
+
+  function runAll() {
+    return cases.map(function (c) {
+      try {
+        return { name: '[timer] ' + c.name, pass: true, detail: c.fn() };
+      } catch (e) {
+        return { name: '[timer] ' + c.name, pass: false, detail: e.message };
+      }
+    });
+  }
+
+  return { runAll: runAll, cases: cases };
+});

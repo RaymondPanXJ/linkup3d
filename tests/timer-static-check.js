@@ -1,1 +1,104 @@
-IyEvdXNyL2Jpbi9lbnYgbm9kZQovKioKICogdGVzdHMvdGltZXItc3RhdGljLWNoZWNrLmpzIOKAlCDorqHml7bmjJHmiJjmqKHlvI/nmoTml6DmtY/op4jlmajmjqXnur/pnZnmgIHmlq3oqIDvvIhpc3N1ZSAjMTLvvIkKICog6aqM6K+BIGluZGV4Lmh0bWwgLyBjc3Mvc3R5bGUuY3NzIC8ganMvZ2FtZS5qcyAvIGpzL3RpbWVyLmpzIOWcqAogKiDjgIzmqKHlvI/liIfmjaLjgIHlgJLorqHml7bmuLLmn5PjgIHmmoLlgZzlhrvnu5PjgIHorabnpLrmgIHjgIHlvZLpm7bliKTotJ/jgIHmjIHkuYXljJbjgI3lkITnq6/nmoTmjqXnur/kuIDoh7TmgKfjgIIKICoKICog6L+Q6KGM77yabm9kZSB0ZXN0cy9ydW4tdGVzdHMuanMg5oiW5Y2V54usIG5vZGUgdGVzdHMvdGltZXItc3RhdGljLWNoZWNrLmpzCiAqLwp2YXIgZnMgPSByZXF1aXJlKCdmcycpOwp2YXIgcGF0aCA9IHJlcXVpcmUoJ3BhdGgnKTsKCmZ1bmN0aW9uIHJ1bkNoZWNrcygpIHsKICB2YXIgcm9vdCA9IHBhdGguam9pbihfX2Rpcm5hbWUsICcuLicpOwogIHZhciBodG1sID0gZnMucmVhZEZpbGVTeW5jKHBhdGguam9pbihyb290LCAnaW5kZXguaHRtbCcpLCAndXRmOCcpOwogIHZhciBjc3MgPSBmcy5yZWFkRmlsZVN5bmMocGF0aC5qb2luKHJvb3QsICdjc3MnLCAnc3R5bGUuY3NzJyksICd1dGY4Jyk7CiAgdmFyIGdhbWUgPSBmcy5yZWFkRmlsZVN5bmMocGF0aC5qb2luKHJvb3QsICdqcycsICdnYW1lLmpzJyksICd1dGY4Jyk7CiAgdmFyIHRpbWVyID0gZnMucmVhZEZpbGVTeW5jKHBhdGguam9pbihyb290LCAnanMnLCAndGltZXIuanMnKSwgJ3V0ZjgnKTsKCiAgdmFyIHJlc3VsdHMgPSBbXTsKICBmdW5jdGlvbiBjaGVjayhuYW1lLCBjb25kLCBkZXRhaWwpIHsKICAgIHJlc3VsdHMucHVzaCh7IG5hbWU6IG5hbWUsIHBhc3M6ICEhY29uZCwgZGV0YWlsOiBkZXRhaWwgfHwgKGNvbmQgPyAnb2snIDogJ0ZBSUxFRCcpIH0pOwogIH0KCiAgLyogMS4gdGltZXIuanPvvJrnuq/lh73mlbDmqKHlnZfvvIzlj4znq6/lr7zlh7rvvIzluLjph4/mraPnoa4gKi8KICBjaGVjaygndGltZXIuanMg5Y+M56uv5a+85Ye677yIbW9kdWxlLmV4cG9ydHMgKyB3aW5kb3cuVGltZXLvvIknLAogICAgL21vZHVsZVwuZXhwb3J0cyA9IGZhY3RvcnlcKFwpLy50ZXN0KHRpbWVyKSAmJiAvcm9vdFwuVGltZXIgPSBmYWN0b3J5XChcKS8udGVzdCh0aW1lcikpOwogIGNoZWNrKCd0aW1lci5qcyDpmZDml7bmgLvplb8gMTIwc+OAgeitpuekuumYiOWAvCAxMHMnLAogICAgL0xJTUlUX1NFQ09ORFMgPSAxMjAvLnRlc3QodGltZXIpICYmIC9XQVJOX1NFQ09ORFMgPSAxMC8udGVzdCh0aW1lcikpOwogIGNoZWNrKCd0aW1lci5qcyDkuI3kvp3otZYgRE9NIC8gRGF0ZS5ub3fvvIjnuq/lh73mlbDvvJrml7bpkp/nlLHosIPnlKjmlrnlloLlhaXvvIknLAogICAgKGZ1bmN0aW9uICgpIHsKICAgICAgdmFyIGNvZGUgPSB0aW1lcgogICAgICAgIC5yZXBsYWNlKC9cL1wqW1xzXFNdKj9cKlwvL2csICcnKSAgIC8vIOWOu+Wdl+azqOmHigogICAgICAgIC5yZXBsYWNlKC9cL1wvW15cbl0qL2csICcnKTsgICAgICAgIC8vIOWOu+ihjOazqOmHigogICAgICByZXR1cm4gIS9kb2N1bWVudFwufERhdGVcLm5vd3xuYXZpZ2F0b3J8bG9jYWxTdG9yYWdlLy50ZXN0KGNvZGUpICYmCiAgICAgICAgICAgICAhL3dpbmRvd1wuKD8hVGltZXIpLy50ZXN0KGNvZGUpOwogICAgfSkoKSk7CgogIC8qIDIuIGluZGV4Lmh0bWzvvJrml7bpl7TmmL7npLrjgIHmqKHlvI/mjInpkq7jgIHmmoLlgZzmjInpkq7kuI7mmoLlgZzpnaLmnb/jgIHohJrmnKzliqDovb0gKi8KICBjaGVjaygnSFRNTCDml7bpl7TmmL7npLrlrrnlmaggI3N0YXRUaW1l77yI5ZCrICN0aW1lTGFiZWwgLyAjdGltZe+8iScsCiAgICAvaWQ9InN0YXRUaW1lIi8udGVzdChodG1sKSAmJiAvaWQ9InRpbWVMYWJlbCIvLnRlc3QoaHRtbCkgJiYgL2lkPSJ0aW1lIi8udGVzdChodG1sKSk7CiAgY2hlY2soJ0hUTUwg5qih5byP5YiH5o2i5oyJ6ZKu57uE77yI5peg5bC9IC8g6ZmQ5pe277yMZGF0YS1tb2RlICsgYXJpYe+8iScsCiAgICAvZGF0YS1tb2RlPSJlbmRsZXNzIi8udGVzdChodG1sKSAmJiAvZGF0YS1tb2RlPSJ0aW1lZCIvLnRlc3QoaHRtbCkgJiYKICAgIC9yb2xlPSJncm91cCIgYXJpYS1sYWJlbD0i5qih5byP6YCJ5oupIi8udGVzdChodG1sKSk7CiAgY2hlY2soJ0hUTUwg5pqC5YGc5oyJ6ZKuICNwYXVzZSDkuI7mmoLlgZzpnaLmnb8gI3BhdXNlU2NyZWVu77yIZGlhbG9nICsg57un57ut5oyJ6ZKu77yJJywKICAgIC88YnV0dG9uIGlkPSJwYXVzZSJbXj5dKmFyaWEtcHJlc3NlZD0iZmFsc2UiLy50ZXN0KGh0bWwpICYmCiAgICAvPGRpdiBpZD0icGF1c2VTY3JlZW4iW14+XSpyb2xlPSJkaWFsb2ciLy50ZXN0KGh0bWwpICYmCiAgICAvPGJ1dHRvbiBpZD0icmVzdW1lIi8udGVzdChodG1sKSk7CiAgY2hlY2soJ0hUTUwg5ZyoIGdhbWUuanMg5LmL5YmN5Yqg6L29IHRpbWVyLmpzJywKICAgIGh0bWwuaW5kZXhPZignanMvdGltZXIuanMnKSA+IDAgJiYgaHRtbC5pbmRleE9mKCdqcy90aW1lci5qcycpIDwgaHRtbC5pbmRleE9mKCdqcy9nYW1lLmpzJykpOwoKICAvKiAzLiBnYW1lLmpz77ya5qih5byP5oyB5LmF5YyWIGxpbmt1cDNkLm1vZGXvvIjor7sr5YaZICsgdHJ5L2NhdGNoICsg5b2S5LiA5YyW77yJICovCiAgY2hlY2soImdhbWUuanMg5L2/55SoIGxpbmt1cDNkLm1vZGUg5a2Y5YKo6ZSu77yI6K+7K+WGme+8iSIsCiAgICAvTU9ERV9LRVkgPSAnbGlua3VwM2RcLm1vZGUnLy50ZXN0KGdhbWUpIHx8CiAgICAvVE1cLk1PREVfS0VZLy50ZXN0KGdhbWUpICYmIC9sb2NhbFN0b3JhZ2VcLnNldEl0ZW1cKE1PREVfS0VZLy50ZXN0KGdhbWUpKTsKICBjaGVjaygn5qih5byP6K+75Y+W57uPIG5vcm1hbGl6ZU1vZGUg5b2S5LiA5LiU5pyJIHRyeS9jYXRjaCDkv53miqQnLAogICAgL25vcm1hbGl6ZU1vZGVcKGxvY2FsU3RvcmFnZVwuZ2V0SXRlbVwoTU9ERV9LRVlcKVwpLy50ZXN0KGdhbWUpICYmCiAgICAvdHJ5IFx7W159XXswLDEyMH1nZXRJdGVtXChNT0RFX0tFWVwpW1xzXFNdezAsMTIwfWNhdGNoLy50ZXN0KGdhbWUpKTsKCiAgLyogNC4gZ2FtZS5qc++8muWAkuiuoeaXtua4suafkyAvIOitpuekuiAvIOW9kumbtiAvIOaaguWBnOaOpee6vyAqLwogIGNoZWNrKCfpmZDml7bmqKHlvI/muLLmn5MgcmVtYWluaW5n77yM5peg5bC95qih5byP5riy5p+TIGVsYXBzZWQnLAogICAgL21vZGUgPT09IFRNXC5NT0RFU1wudGltZWRbXHNcU117MCwxMjB9dFN0YXRlXC5yZW1haW5pbmdTZWNbXHNcU117MCw4MH10U3RhdGVcLmVsYXBzZWRTZWMvLnRlc3QoZ2FtZSkpOwogIGNoZWNrKCforabnpLrmgIHvvJp3YXJuaW5nIGNsYXNzIOS7heWcqOmZkOaXtivmnKrmmoLlgZwr6K6h5pe25Lit5YiH5o2iJywKICAgIC9zdGF0VGltZVwuY2xhc3NMaXN0XC50b2dnbGVcKCd3YXJuaW5nJy8udGVzdChnYW1lKSAmJgogICAgLyFwYXVzZWQgJiYgdFN0YXRlXC5ydW5uaW5nICYmIHRTdGF0ZVwud2FybmluZy8udGVzdChnYW1lKSk7CiAgY2hlY2soJ+W9kumbtuWIpOi0n++8mmZpbmlzaGVkIOinpuWPkSBsb3NlKCnvvIznu5PnrpfpnaLmnb/mmL7npLrjgIzml7bpl7TliLDjgI0nLAogICAgL3RTdGF0ZVwuZmluaXNoZWRbXHNcU117MCw4MH1sb3NlXChcKS8udGVzdChnYW1lKSAmJgogICAgL3Nob3dSZXN1bHRcKCfml7bpl7TliLAnLy50ZXN0KGdhbWUpKTsKICBjaGVjaygn5pqC5YGcL+aBouWkjeiwg+eUqCBUTS5wYXVzZSAvIFRNLnJlc3VtZe+8iOiuoeaXtuWGu+e7k+eUsee6r+WHveaVsOS/neivge+8iScsCiAgICAvVE1cLnBhdXNlXCh0U3RhdGUsIG5vd01zXChcKVwpLy50ZXN0KGdhbWUpICYmIC9UTVwucmVzdW1lXCh0U3RhdGUsIG5vd01zXChcKVwpLy50ZXN0KGdhbWUpKTsKICBjaGVjaygn5pqC5YGc6YGu572p77yaYm9hcmQucGF1c2VkICsgcGF1c2VTY3JlZW4uc2hvdyDlkIzmraXliIfmjaInLAogICAgL2JvYXJkXC5jbGFzc0xpc3RcLmFkZFwoJ3BhdXNlZCdcKS8udGVzdChnYW1lKSAmJgogICAgL3BhdXNlU2NyZWVuXC5jbGFzc0xpc3RcLmFkZFwoJ3Nob3cnXCkvLnRlc3QoZ2FtZSkpOwogIGNoZWNrKCfnqbrmoLzplK7op6blj5HmmoLlgZzliIfmjaInLAogICAgL2V2XC5jb2RlID09PSAnU3BhY2UnW1xzXFNdezAsMTIwfXRvZ2dsZVBhdXNlXChcKS8udGVzdChnYW1lKSk7CiAgY2hlY2soJ3Jlc3RhcnQg6YCa6L+HIFRNLmNyZWF0ZShtb2RlKSDph43nva7orqHml7bnirbmgIEnLAogICAgL3RTdGF0ZSA9IFRNXC5jcmVhdGVcKG1vZGVcKS8udGVzdChnYW1lKSk7CiAgY2hlY2soJ+aaguWBnOacn+mXtOeJjOmdoui+k+WFpeiiq+mUgeWumicsCiAgICAvaWYgXChidXN5IFx8XHwgcGF1c2VkIFx8XHwgIXJ1bm5pbmcvLnRlc3QoZ2FtZSkpOwoKICAvKiA1LiBjc3PvvJrorabnpLrmgIHjgIHmmoLlgZzpga7nvanjgIHpnaLmnb/moLflvI8gKi8KICBjaGVjaygiY3NzIOitpuekuuaAgSAjc3RhdFRpbWUud2FybmluZ++8iOe6ouiJsiArIOiEieWKqOWKqOeUu++8iSIsCiAgICAvI3N0YXRUaW1lXC53YXJuaW5nW1xzXFNdezAsMjAwfWFuaW1hdGlvbjogdGltZS1wdWxzZS8udGVzdChjc3MpICYmCiAgICAvQGtleWZyYW1lcyB0aW1lLXB1bHNlLy50ZXN0KGNzcykpOwogIGNoZWNrKCdjc3Mg5pqC5YGc6YGu572p77yaI2JvYXJkLnBhdXNlZCDmqKHns4rniYzpnaIgKyAjcGF1c2VTY3JlZW4g5rWu5bGCJywKICAgIC8jYm9hcmRcLnBhdXNlZFtcc1xTXXswLDEyMH1ibHVyXCgvLnRlc3QoY3NzKSAmJgogICAgLyNwYXVzZVNjcmVlblwuc2hvdyBceyBvcGFjaXR5OiAxOyBwb2ludGVyLWV2ZW50czogYXV0bzsgXH0vLnRlc3QoY3NzKSk7CiAgY2hlY2soJ2NzcyDmqKHlvI/mjInpkq7nu4TmoLflvI/lrZjlnKjvvIgubW9kZSAvIC5tb2RlLWJ0biArIGFjdGl2ZSDmgIHvvIknLAogICAgL1wubW9kZS1idG4vLnRlc3QoY3NzKSAmJiAvXC5tb2RlLWJ0blwuYWN0aXZlfFwubW9kZSBcLm1vZGUtYnRuXFtjbGFzc1wqPS8udGVzdChjc3MpKTsKCiAgcmV0dXJuIHJlc3VsdHM7Cn0KCm1vZHVsZS5leHBvcnRzID0geyBydW5DaGVja3M6IHJ1bkNoZWNrcyB9OwoKaWYgKHJlcXVpcmUubWFpbiA9PT0gbW9kdWxlKSB7CiAgdmFyIHJzID0gcnVuQ2hlY2tzKCk7CiAgdmFyIHBhc3MgPSAwOwogIHJzLmZvckVhY2goZnVuY3Rpb24gKHIpIHsKICAgIGNvbnNvbGUubG9nKChyLnBhc3MgPyAnUEFTUycgOiAnRkFJTCcpICsgJyAgJyArIHIubmFtZSArICcgIC0+ICcgKyByLmRldGFpbCk7CiAgICBpZiAoci5wYXNzKSBwYXNzKys7CiAgfSk7CiAgY29uc29sZS5sb2cocGFzcyArICcvJyArIHJzLmxlbmd0aCArICcgcGFzc2VkJyk7CiAgcHJvY2Vzcy5leGl0KHBhc3MgPT09IHJzLmxlbmd0aCA/IDAgOiAxKTsKfQo=
+#!/usr/bin/env node
+/**
+ * tests/timer-static-check.js — 计时挑战模式的无浏览器接线静态断言（issue #12）
+ * 验证 index.html / css/style.css / js/game.js / js/timer.js 在
+ * 「模式切换、倒计时渲染、暂停冻结、警示态、归零判负、持久化」各端的接线一致性。
+ *
+ * 运行：node tests/run-tests.js 或单独 node tests/timer-static-check.js
+ */
+var fs = require('fs');
+var path = require('path');
+
+function runChecks() {
+  var root = path.join(__dirname, '..');
+  var html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  var css = fs.readFileSync(path.join(root, 'css', 'style.css'), 'utf8');
+  var game = fs.readFileSync(path.join(root, 'js', 'game.js'), 'utf8');
+  var timer = fs.readFileSync(path.join(root, 'js', 'timer.js'), 'utf8');
+
+  var results = [];
+  function check(name, cond, detail) {
+    results.push({ name: name, pass: !!cond, detail: detail || (cond ? 'ok' : 'FAILED') });
+  }
+
+  /* 1. timer.js：纯函数模块，双端导出，常量正确 */
+  check('timer.js 双端导出（module.exports + window.Timer）',
+    /module\.exports = factory\(\)/.test(timer) && /root\.Timer = factory\(\)/.test(timer));
+  check('timer.js 限时总长 120s、警示阈值 10s',
+    /LIMIT_SECONDS = 120/.test(timer) && /WARN_SECONDS = 10/.test(timer));
+  check('timer.js 不依赖 DOM / Date.now（纯函数：时钟由调用方喂入）',
+    (function () {
+      var code = timer
+        .replace(/\/\*[\s\S]*?\*\//g, '')   // 去块注释
+        .replace(/\/\/[^\n]*/g, '');        // 去行注释
+      return !/document\.|Date\.now|navigator|localStorage/.test(code) &&
+             !/window\.(?!Timer)/.test(code);
+    })());
+
+  /* 2. index.html：时间显示、模式按钮、暂停按钮与暂停面板、脚本加载 */
+  check('HTML 时间显示容器 #statTime（含 #timeLabel / #time）',
+    /id="statTime"/.test(html) && /id="timeLabel"/.test(html) && /id="time"/.test(html));
+  check('HTML 模式切换按钮组（无尽 / 限时，data-mode + aria）',
+    /data-mode="endless"/.test(html) && /data-mode="timed"/.test(html) &&
+    /role="group" aria-label="模式选择"/.test(html));
+  check('HTML 暂停按钮 #pause 与暂停面板 #pauseScreen（dialog + 继续按钮）',
+    /<button id="pause"[^>]*aria-pressed="false"/.test(html) &&
+    /<div id="pauseScreen"[^>]*role="dialog"/.test(html) &&
+    /<button id="resume"/.test(html));
+  check('HTML 在 game.js 之前加载 timer.js',
+    html.indexOf('js/timer.js') > 0 && html.indexOf('js/timer.js') < html.indexOf('js/game.js'));
+
+  /* 3. game.js：模式持久化 linkup3d.mode（读+写 + try/catch + 归一化） */
+  check("game.js 使用 linkup3d.mode 存储键（读+写）",
+    /MODE_KEY = 'linkup3d\.mode'/.test(game) ||
+    /TM\.MODE_KEY/.test(game) && /localStorage\.setItem\(MODE_KEY/.test(game));
+  check('模式读取经 normalizeMode 归一且有 try/catch 保护',
+    /normalizeMode\(localStorage\.getItem\(MODE_KEY\)\)/.test(game) &&
+    /try \{[^}]{0,120}getItem\(MODE_KEY\)[\s\S]{0,120}catch/.test(game));
+
+  /* 4. game.js：倒计时渲染 / 警示 / 归零 / 暂停接线 */
+  check('限时模式渲染 remaining，无尽模式渲染 elapsed',
+    /mode === TM\.MODES\.timed[\s\S]{0,120}tState\.remainingSec[\s\S]{0,80}tState\.elapsedSec/.test(game));
+  check('警示态：warning class 仅在限时+未暂停+计时中切换',
+    /statTime\.classList\.toggle\('warning'/.test(game) &&
+    /!paused && tState\.running && tState\.warning/.test(game));
+  check('归零判负：finished 触发 lose()，结算面板显示「时间到」',
+    /tState\.finished[\s\S]{0,80}lose\(\)/.test(game) &&
+    /showResult\('时间到'/.test(game));
+  check('暂停/恢复调用 TM.pause / TM.resume（计时冻结由纯函数保证）',
+    /TM\.pause\(tState, nowMs\(\)\)/.test(game) && /TM\.resume\(tState, nowMs\(\)\)/.test(game));
+  check('暂停遮罩：board.paused + pauseScreen.show 同步切换',
+    /board\.classList\.add\('paused'\)/.test(game) &&
+    /pauseScreen\.classList\.add\('show'\)/.test(game));
+  check('空格键触发暂停切换',
+    /ev\.code === 'Space'[\s\S]{0,120}togglePause\(\)/.test(game));
+  check('restart 通过 TM.create(mode) 重置计时状态',
+    /tState = TM\.create\(mode\)/.test(game));
+  check('暂停期间牌面输入被锁定',
+    /if \(busy \|\| paused \|\| !running/.test(game));
+
+  /* 5. css：警示态、暂停遮罩、面板样式 */
+  check("css 警示态 #statTime.warning（红色 + 脉动动画）",
+    /#statTime\.warning[\s\S]{0,200}animation: time-pulse/.test(css) &&
+    /@keyframes time-pulse/.test(css));
+  check('css 暂停遮罩：#board.paused 模糊牌面 + #pauseScreen 浮层',
+    /#board\.paused[\s\S]{0,120}blur\(/.test(css) &&
+    /#pauseScreen\.show \{ opacity: 1; pointer-events: auto; \}/.test(css));
+  check('css 模式按钮组样式存在（.mode / .mode-btn + active 态）',
+    /\.mode-btn/.test(css) && /\.mode-btn\.active|\.mode \.mode-btn\[class\*=/.test(css));
+
+  return results;
+}
+
+module.exports = { runChecks: runChecks };
+
+if (require.main === module) {
+  var rs = runChecks();
+  var pass = 0;
+  rs.forEach(function (r) {
+    console.log((r.pass ? 'PASS' : 'FAIL') + '  ' + r.name + '  -> ' + r.detail);
+    if (r.pass) pass++;
+  });
+  console.log(pass + '/' + rs.length + ' passed');
+  process.exit(pass === rs.length ? 0 : 1);
+}
