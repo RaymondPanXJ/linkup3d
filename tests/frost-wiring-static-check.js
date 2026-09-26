@@ -38,8 +38,8 @@ function runChecks() {
   check('index.html 按序加载 frost.js → enemy.js → game.js',
     iFrost >= 0 && iEnemy > iFrost && iGame > iEnemy,
     'frost=' + iFrost + ' enemy=' + iEnemy + ' game=' + iGame);
-  check('index.html 调试开关按钮 #frostDebug 存在（T5 关卡装载后移除）',
-    /<button id="frostDebug"/.test(html));
+  check('index.html 调试开关按钮 #frostDebug 已按 T5（issue #33 要求6）移除',
+    !/<button id="frostDebug"/.test(html));
 
   /* ================ B. game.js 接线 ================ */
   check('game.js 引入 Frost/Enemy 模块别名',
