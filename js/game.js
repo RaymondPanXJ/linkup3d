@@ -659,9 +659,19 @@
   function doShuffle() {
     busy = true;
     SFX.shuffle();
+    // 洗牌全场解冻（issue #39 裁决1）：洗牌保底只看值配对、不看冰冻遮挡，
+    // 冻结封锁点位会使保底失效；洗牌重建盘面时冻结状态本就无意义，
+    // 清除全部冰冻与预警以恢复「洗牌后必有解」的硬保证。
+    // enemyState 目标若洗牌后失效，由既有 ctx.tiles 自愈机制处理，无需额外代码。
+    frostState = FRZ.create();
+    Object.keys(slots).forEach(function (k) {
+      slots[k].classList.remove('tile-frozen');
+      slots[k].classList.remove('tile-frost-warn');
+    });
+    lastWarnSoundAt = 0;
+    showToast('搅动星尘,寒冰消融');
     L.shuffleGrid(grid);
-    // 洗牌只换图案不换格子位置，frost 坐标口径不变 → frostState/enemyState 原样保留，
-    // 无需坐标重映射（issue #31 接线要求 1 的决定）
+    // 洗牌只换图案不换格子位置，frost 坐标口径不变（issue #31 接线要求 1 的决定）
     var myGen = gen;
     Object.keys(slots).forEach(function (k) {
       var slot = slots[k], p = k.split(','), v = grid[+p[0]][+p[1]];

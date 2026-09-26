@@ -16,16 +16,16 @@
  *     回滚——对齐 T4 取舍，死局统计正是 T6 要暴露的点）；预警目标被消除时
  *     按 eliminate() 路径显式 cancelTarget。
  *   - 洗牌：无可连对时按 game.js doShuffle 同款调一次 L.shuffleGrid
- *     （内部 200 次随机 + 构造性保底，保底口径不看冰冻）；洗牌后仍无
- *     冰冻可连对 → 记一次死局。
+ *     （内部 200 次随机 + 构造性保底，保底口径不看冰冻）。按 issue #39 裁决1
+ *     洗牌全场解冻：doShuffle 同步 frostState = Frost.create() 清除全部冰冻
+ *     与预警（enemyState 保留，目标失效由 ctx.tiles 自愈，与 game.js 一致）；
+ *     解冻后仍无可连对 → 记一次死局。
  *   - 时限：timeLimitSec > 0 时从开局计时，超时记「超时」（非死局）。
  *   - 时钟零依赖：不用 Date.now / setTimeout，全部注入推进。
  *
- * 断言口径（对齐 issue #37「断言从简」+ 验收「全套件全绿」）：
- * 每关死局数作为报告数据输出（L6/L8/L9 存在真实死局，见 PR/issue 报告，
- * 修复归 T6b，不让红灯常驻套件）；套件本身断言可全绿执行的确定性契约：
- * 全部 100 局收敛出合法结局、同种子重放逐字节一致、口径常量正确。
- * 通关率与平均用时只进报告（report()），是 T6b 调优的输入，不设硬断言。
+ * 断言口径（issue #39 T6b 升级）：每关死局=0 为硬断言（裁决1 落地后的核心验收），
+ * 10 局/关不变；同种子重放逐字节一致、口径常量正确等契约沿用。
+ * 通关率与平均用时进报告（report()），是 par 复核的输入。
  *
  * 运行：node tests/run-tests.js
  * 报告：node -e "process.stdout.write(require('./tests/level-simulation.define.js').report())"
@@ -180,7 +180,9 @@
       // 贪心玩家行动
       var pair = findFirstPair(grid, frozenMap(frostState));
       if (!pair) {
-        // 对齐 game.js：无可连对 → 洗牌保底一次；仍无 → 死局
+        // 对齐 game.js doShuffle（issue #39 裁决1）：无可连对 → 全场解冻 + 洗牌保底一次；
+        // 解冻洗牌后仍无 → 死局
+        frostState = FRZ.create();
         L.shuffleGrid(grid, rng);
         pair = findFirstPair(grid, frozenMap(frostState));
         if (!pair) {
@@ -235,16 +237,17 @@
     return cached;
   }
 
-  // 逐关用例：结局合法（通关+死局+超时 = 10，全部收敛）；死局数进 detail 报告。
-  // L6/L8/L9 死局为真实设计缺口（洗牌保底不看冰冻），修复归 T6b——见 PR 说明。
+  // 逐关用例（issue #39 验证要求升级）：结局合法 + 死局=0。
+  // 裁决1（洗牌全场解冻）恢复「洗牌后必有解」硬保证，L6/L8/L9 死局应清零——
+  // 这是本单的核心验收；若再出现死局属回归，套件红灯，不许放宽断言。
   function levelCases() {
     return results().map(function (s) {
       var lv = s.level;
       var detail = '通关 ' + s.clears + '/' + RUNS_PER_LEVEL +
         ' · 死局 ' + s.deadlocks + ' · 超时 ' + s.timeouts +
         ' · 通关平均 ' + s.avgClearSec + 's / par ' + lv.parSec + 's';
-      return case_('仿真S-L' + lv.id + ' 「' + lv.name + '」10 局全部收敛出合法结局',
-        s.clears + s.deadlocks + s.timeouts === RUNS_PER_LEVEL, detail);
+      return case_('仿真S-L' + lv.id + ' 「' + lv.name + '」10 局全部收敛且死局=0（issue #39）',
+        s.clears + s.deadlocks + s.timeouts === RUNS_PER_LEVEL && s.deadlocks === 0, detail);
     });
   }
 
