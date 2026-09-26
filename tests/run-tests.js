@@ -24,6 +24,7 @@ var enemyTests = require('./enemy.define.js');
 var enemyChecks = require('./enemy-static-check.js');
 var frostWiringChecks = require('./frost-wiring-static-check.js');
 var starmapChecks = require('./starmap-static-check.js');
+var simulationTests = require('./level-simulation.define.js');
 
 var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   spaceTests.runAll(), timerTests.runAll(), hintTests.runAll(), uiChecks.runChecks(),
@@ -32,7 +33,8 @@ var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   campaignTests.runAll(), saveTests.runAll(), campaignChecks.runChecks(),
   frostTests.runAll(), frostChecks.runChecks(),
   enemyTests.runAll(), enemyChecks.runChecks(),
-  frostWiringChecks.runChecks(), starmapChecks.runChecks());
+  frostWiringChecks.runChecks(), starmapChecks.runChecks(),
+  simulationTests.runAll());
 var pass = 0;
 
 results.forEach(function (r) {
