@@ -15,11 +15,15 @@ var rankChecks = require('./rank-static-check.js');
 var themeChecks = require('./theme-static-check.js');
 var hintTests = require('./hint.define.js');
 var hintChecks = require('./hint-static-check.js');
+var campaignTests = require('./campaign.define.js');
+var saveTests = require('./save.define.js');
+var campaignChecks = require('./campaign-static-check.js');
 
 var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   spaceTests.runAll(), timerTests.runAll(), hintTests.runAll(), uiChecks.runChecks(),
   spaceChecks.runChecks(), timerChecks.runChecks(), rankChecks.runChecks(),
-  themeChecks.runChecks(), hintChecks.runChecks());
+  themeChecks.runChecks(), hintChecks.runChecks(),
+  campaignTests.runAll(), saveTests.runAll(), campaignChecks.runChecks());
 var pass = 0;
 
 results.forEach(function (r) {
