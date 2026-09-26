@@ -20,13 +20,16 @@ var saveTests = require('./save.define.js');
 var campaignChecks = require('./campaign-static-check.js');
 var frostTests = require('./frost.define.js');
 var frostChecks = require('./frost-static-check.js');
+var enemyTests = require('./enemy.define.js');
+var enemyChecks = require('./enemy-static-check.js');
 
 var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   spaceTests.runAll(), timerTests.runAll(), hintTests.runAll(), uiChecks.runChecks(),
   spaceChecks.runChecks(), timerChecks.runChecks(), rankChecks.runChecks(),
   themeChecks.runChecks(), hintChecks.runChecks(),
   campaignTests.runAll(), saveTests.runAll(), campaignChecks.runChecks(),
-  frostTests.runAll(), frostChecks.runChecks());
+  frostTests.runAll(), frostChecks.runChecks(),
+  enemyTests.runAll(), enemyChecks.runChecks());
 var pass = 0;
 
 results.forEach(function (r) {
