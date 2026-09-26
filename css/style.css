@@ -1010,9 +1010,90 @@ body.mobile-lite .tile-slot.removing .tile-spin {
   .panel h2 { font-size: 24px; letter-spacing: 4px; }
 }
 
+/* 冻冰 / 巡猎者（issue #31，T4）*/
+.tile-slot.tile-frozen::after {        /* 半透明冰壳覆盖 */
+  content: '';
+  position: absolute;
+  inset: -3%;
+  border-radius: 14px;
+  background: linear-gradient(160deg,
+    rgba(180, 235, 255, .5) 0%, rgba(120, 200, 255, .28) 45%, rgba(210, 245, 255, .42) 100%);
+  box-shadow: inset 0 0 12px rgba(210, 245, 255, .8), 0 0 10px rgba(130, 210, 255, .45);
+  transform: translateZ(calc(var(--depth) / 2 + 2px));
+  pointer-events: none;
+  z-index: 3;
+}
+.tile-slot.tile-frozen .face.front::after { /* 冰晶纹 */
+  content: '❄';
+  position: absolute;
+  right: 7%;
+  bottom: 5%;
+  font-size: calc(var(--emoji-size) * .45);
+  color: rgba(255, 255, 255, .85);
+  text-shadow: 0 0 6px rgba(140, 215, 255, .9);
+}
+.tile-slot.tile-frozen .tile { cursor: default; }
+
+.tile-slot.tile-frost-warn .face.front {     /* 预警红晕脉冲 */
+  animation: frostwarn 1s ease-in-out infinite;
+}
+@keyframes frostwarn {
+  0%, 100% { box-shadow: inset 0 1px 0 var(--tile-highlight), 0 0 0 2px rgba(255, 82, 82, .25), 0 0 10px rgba(255, 82, 82, .3); }
+  50%      { box-shadow: inset 0 1px 0 var(--tile-highlight), 0 0 0 3px rgba(255, 82, 82, .7), 0 0 22px rgba(255, 82, 82, .65); }
+}
+
+.tile-slot.tile-thawing .tile-spin {         /* 解冻碎冰爆开 */
+  animation: thawscale .62s ease-out;
+}
+.tile-slot.tile-thawing::after {
+  content: '❄';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--emoji-size) * .8);
+  color: rgba(210, 245, 255, .95);
+  text-shadow: 0 0 12px rgba(140, 215, 255, .95);
+  transform: translateZ(calc(var(--depth) / 2 + 3px));
+  pointer-events: none;
+  z-index: 4;
+  animation: thawburst .62s ease-out forwards;
+}
+@keyframes thawscale {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+@keyframes thawburst {
+  0%   { opacity: 1; transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(.6); }
+  60%  { opacity: .9; transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(1.5); }
+  100% { opacity: 0; transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(2.1); }
+}
+
+button#frostDebug.on {                       /* 「❄ 测试」开关激活态 */
+  border-color: rgba(140, 215, 255, .9);
+  box-shadow: 0 0 10px rgba(130, 210, 255, .5);
+  color: #bfeaff;
+}
+
+/* 弱化动效偏好：仅静态冰 tint / 红晕描边，关闭呼吸与碎冰动画 */
+@media (prefers-reduced-motion: reduce) {
+  .tile-slot.tile-frozen::after {
+    background: rgba(150, 215, 255, .42);
+    box-shadow: inset 0 0 8px rgba(210, 245, 255, .6);
+  }
+  .tile-slot.tile-frost-warn .face.front {
+    animation: none;
+    box-shadow: inset 0 1px 0 var(--tile-highlight), 0 0 0 3px rgba(255, 82, 82, .75);
+  }
+  .tile-slot.tile-thawing .tile-spin { animation: none; }
+  .tile-slot.tile-thawing::after { animation: none; opacity: 0; }
+}
+
 /* 触摸设备：HUD 按钮保证 ≥44px 触摸热区 */
 @media (pointer: coarse) {
   button#restart { min-height: 44px; }
   .diff-btn { min-height: 44px; }
-  button#mute, button#music { width: 44px; height: 44px; }
+  button#mute, button#music, button#frostDebug { width: 44px; height: 44px; }
 }

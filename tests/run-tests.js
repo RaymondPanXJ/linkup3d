@@ -22,6 +22,7 @@ var frostTests = require('./frost.define.js');
 var frostChecks = require('./frost-static-check.js');
 var enemyTests = require('./enemy.define.js');
 var enemyChecks = require('./enemy-static-check.js');
+var frostWiringChecks = require('./frost-wiring-static-check.js');
 
 var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   spaceTests.runAll(), timerTests.runAll(), hintTests.runAll(), uiChecks.runChecks(),
@@ -29,7 +30,8 @@ var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   themeChecks.runChecks(), hintChecks.runChecks(),
   campaignTests.runAll(), saveTests.runAll(), campaignChecks.runChecks(),
   frostTests.runAll(), frostChecks.runChecks(),
-  enemyTests.runAll(), enemyChecks.runChecks());
+  enemyTests.runAll(), enemyChecks.runChecks(),
+  frostWiringChecks.runChecks());
 var pass = 0;
 
 results.forEach(function (r) {
