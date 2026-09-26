@@ -1,8 +1,8 @@
 /**
  * game.js — 3D 连连看 UI 与游戏逻辑（纯原生 JS）
  * 依赖：js/link3d.js（window.Link3D）、js/combo.js（window.Combo）、
- *       js/music.js（window.Music）、js/stars.js（window.Stars）、
- *       js/timer.js（window.Timer）
+ *       js/ranking.js（window.Ranking）、js/music.js（window.Music）、
+ *       js/stars.js（window.Stars）、js/timer.js（window.Timer）
  */
 (function () {
   'use strict';
@@ -10,6 +10,7 @@
   var L = window.Link3D;
   var CB = window.Combo;
   var TM = window.Timer;
+  var RK = window.Ranking;
 
   /* ---------------- 难度 ---------------- */
   var DIFFICULTIES = {
@@ -55,6 +56,11 @@
   var pauseBtn = document.getElementById('pause');
   var pauseScreen = document.getElementById('pauseScreen');
   var statTime = document.getElementById('statTime');
+  var rankBtn = document.getElementById('rank');
+  var rankOverlay = document.getElementById('rankOverlay');
+  var rankTabs = document.getElementById('rankTabs');
+  var rankTbody = document.getElementById('rankTbody');
+  var rankClose = document.getElementById('rankClose');
 
   /* ---------------- 音效（WebAudio 程序化合成，零音频文件） ---------------- */
   var SFX = (function () {
@@ -221,6 +227,7 @@
   var selected = null;      // {r, c}
   var score = 0;
   var combo = 0;
+  var maxCombo = 0;        // 本局连击最高值（用于排行榜记录）
   var lastMatchAt = 0;
   var best = 0;              // 当前难度的历史最高分
   var timerId = null;
@@ -404,6 +411,7 @@
     var gap = lastMatchAt ? now - lastMatchAt : Infinity;
     var res = CB.applyMatch(combo, gap);
     combo = res.combo;
+    if (combo > maxCombo) maxCombo = combo;
     lastMatchAt = now;
     score += res.points;
     if (CB.isActive(combo)) {
@@ -615,10 +623,11 @@
     SFX.win();
     stopTimer();
     board.classList.add('won');
+    recordRound(); // 通关结算写入排行榜（issue #13）
     showResult('恭喜通关', '用时 ' + fmt(tState.elapsedSec));
   }
 
-  /* 限时模式倒计时归零：本局判负，弹出结算面板（得分保留展示） */
+  /* 限时模式倒计时归零：本局判负，弹出结算面板（得分保留展示，不入排行榜） */
   function lose() {
     running = false;
     stopTimer();
@@ -639,9 +648,10 @@
   function restart() {
     gen++;
     stopTimer();
-    score = 0; combo = 0; lastMatchAt = 0;
+    score = 0; combo = 0; maxCombo = 0; lastMatchAt = 0;
     tState = TM.create(mode);
     paused = false;
+    lastRoundTs = 0;
     bestStat.classList.remove('record');
     selected = null; busy = false; running = true;
     board.classList.remove('paused');
@@ -713,6 +723,104 @@
 
   renderMode();
   restart();
+
+  /* ---------------- 本地排行榜（Top10 分难度，issue #13） ---------------- */
+  // 记录时机说明：仅「通关」入榜（win 调用）；限时判负（lose）保留得分展示但不入榜，
+  // 榜单只收完整通关成绩。与 linkup3d.best.* 体系并存：best 仍在消除时实时写入
+  // （HUD 即时反馈），ranking 记录完整明细（用时/连击/日期），两者互不覆盖。
+  var lastRoundTs = 0;          // 本局记录的 ts，用于面板高亮
+  var rankView = difficulty;    // 面板当前查看的难度档
+
+  function loadBoard(diff) {
+    try {
+      return RK.parseBoard(localStorage.getItem(RK.rankKey(diff)));
+    } catch (e) { return []; }
+  }
+
+  function recordRound() {
+    lastRoundTs = 0;
+    if (!RK.isEligible(score)) return; // 得分 0 不入榜
+    var entry = RK.createEntry(score, tState.elapsedSec, Math.max(maxCombo, 1), Date.now());
+    var board = loadBoard(difficulty);
+    if (!RK.wouldEnter(board, score)) return;
+    var next = RK.insert(board, entry);
+    try { localStorage.setItem(RK.rankKey(difficulty), RK.serializeBoard(next)); } catch (e) { /* 忽略 */ }
+    lastRoundTs = entry.ts;
+  }
+
+  var RANK_DIFFS = [
+    { key: 'easy', label: '简单' },
+    { key: 'normal', label: '标准' },
+    { key: 'hard', label: '困难' }
+  ];
+
+  function renderRankTabs() {
+    rankTabs.innerHTML = '';
+    RANK_DIFFS.forEach(function (d) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'rank-tab' + (d.key === rankView ? ' active' : '');
+      b.dataset.key = d.key;
+      b.textContent = d.label;
+      b.setAttribute('aria-pressed', d.key === rankView ? 'true' : 'false');
+      rankTabs.appendChild(b);
+    });
+  }
+
+  function renderRankPanel() {
+    renderRankTabs();
+    var board = loadBoard(rankView);
+    rankTbody.innerHTML = '';
+    if (!board.length) {
+      var tr = document.createElement('tr');
+      tr.className = 'rank-empty';
+      var td = document.createElement('td');
+      td.colSpan = 5;
+      td.textContent = '暂无记录，快来创造第一条吧';
+      tr.appendChild(td);
+      rankTbody.appendChild(tr);
+      return;
+    }
+    board.forEach(function (e, i) {
+      var tr = document.createElement('tr');
+      if (e.ts === lastRoundTs) tr.className = 'rank-new';
+      function cell(text) {
+        var td = document.createElement('td');
+        td.textContent = text;
+        tr.appendChild(td);
+      }
+      cell(String(i + 1));
+      cell(String(e.score));
+      cell(RK.formatTime(e.seconds));
+      cell('x' + e.maxCombo);
+      cell(RK.formatDate(e.ts));
+      rankTbody.appendChild(tr);
+    });
+  }
+
+  function openRankPanel() {
+    rankView = difficulty;
+    renderRankPanel();
+    rankOverlay.classList.add('show');
+  }
+
+  // 关闭方式：点遮罩 + 关闭钮 + Esc（issue 验收三选二+，全部实现）
+  function closeRankPanel() { rankOverlay.classList.remove('show'); }
+
+  rankBtn.addEventListener('click', openRankPanel);
+  rankClose.addEventListener('click', closeRankPanel);
+  rankOverlay.addEventListener('click', function (ev) {
+    if (ev.target === rankOverlay) closeRankPanel();
+  });
+  window.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape' && rankOverlay.classList.contains('show')) closeRankPanel();
+  });
+  rankTabs.addEventListener('click', function (ev) {
+    var btn = ev.target.closest('.rank-tab');
+    if (!btn || btn.dataset.key === rankView) return;
+    rankView = btn.dataset.key;
+    renderRankPanel();
+  });
 
   /* ---------------- 动态星空背景 ---------------- */
   window.Stars.mount(document.getElementById('starfield'));
