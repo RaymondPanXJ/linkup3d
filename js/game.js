@@ -14,6 +14,8 @@
   var RK = window.Ranking;
   var Mobile = window.Link3DMobile;
   var Hint = window.Hint;
+  var FRZ = window.Frost;   // js/frost.js 冻冰状态层（issue #27）
+  var ENM = window.Enemy;   // js/enemy.js 巡猎者大脑（issue #29）
 
   /* ---------------- 难度 ---------------- */
   var DIFFICULTIES = {
@@ -65,6 +67,7 @@
   var rankTbody = document.getElementById('rankTbody');
   var rankClose = document.getElementById('rankClose');
   var themeBtn = document.getElementById('theme');
+  var frostBtn = document.getElementById('frostDebug');
 
   /* ---------------- 主题（深空→浅色→霓虹 循环，issue #15） ---------------- */
   var THEME_KEY = 'linkup3d.theme';
@@ -197,6 +200,43 @@
           for (var i = 0; i < seq.length; i++) {
             tone(seq[i], t + i * 0.16, 0.34, 'square', 0.07);
           }
+        });
+      },
+      // 冻结（issue #31）：玻璃质感下行滑音 + 噪声脆响
+      freeze: function () {
+        play(function (c, t) {
+          tone(1568, t, 0.3, 'sine', 0.11, 523.25); // G6 → C5 下行
+          tone(2093, t + 0.05, 0.18, 'triangle', 0.06, 1046.5);
+          var dur = 0.09;
+          var buf = c.createBuffer(1, Math.floor(c.sampleRate * dur), c.sampleRate);
+          var data = buf.getChannelData(0);
+          for (var i = 0; i < data.length; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2);
+          }
+          var src = c.createBufferSource();
+          src.buffer = buf;
+          var bp = c.createBiquadFilter();
+          bp.type = 'bandpass';
+          bp.frequency.value = 4200;
+          var g = c.createGain();
+          g.gain.value = 0.12;
+          src.connect(bp).connect(g).connect(c.destination);
+          src.start(t);
+        });
+      },
+      // 解冻：明亮三连琶音
+      thaw: function () {
+        play(function (c, t) {
+          var seq = [1046.5, 1318.5, 1568]; // C6 E6 G6
+          for (var i = 0; i < seq.length; i++) {
+            tone(seq[i], t + i * 0.05, 0.12, 'triangle', 0.11);
+          }
+        });
+      },
+      // 猎杀预警：轻滴答（预警期内每秒一次，由主循环节流）
+      warn: function () {
+        play(function (c, t) {
+          tone(1760, t, 0.035, 'square', 0.05);
         });
       }
     };
@@ -441,6 +481,17 @@
   /* ---------------- 交互 ---------------- */
   function onTileClick(r, c) {
     if (busy || paused || !running || !grid[r][c]) return;
+    // 冰冻格守卫（issue #31）：不可选中，抖动反馈 + toast
+    if (!FRZ.canSelect(frostState, r, c)) {
+      var s = slots[r + ',' + c];
+      if (s) {
+        s.classList.remove('shake');
+        void s.offsetWidth;
+        s.classList.add('shake');
+      }
+      showToast('这颗牌被冰封了');
+      return;
+    }
     startTimerIfNeeded();
 
     if (selected && selected.r === r && selected.c === c) {
@@ -459,6 +510,13 @@
 
     if (grid[a.r][a.c] !== grid[b.r][b.c]) {
       rejectPair(ta, tb);
+      return;
+    }
+    // 连通判定入口把关（issue #31）：冰冻格不得作为端点
+    // （选中后目标格被冻结的竞态由这里兜住）
+    if (!FRZ.canMatch(frostState, a.r, a.c, b.r, b.c)) {
+      rejectPair(ta, tb);
+      showToast('这颗牌被冰封了');
       return;
     }
     var path = L.findPath(grid, a, b);
@@ -490,6 +548,27 @@
     busy = true;
     SFX.match();
     drawPath(path);
+
+    // 敌人联动（issue #31）：消除预警中的目标格 → 取消本次猎杀并撤红晕
+    if (enemyState && enemyState.target) {
+      if ((enemyState.target.r === a.r && enemyState.target.c === a.c) ||
+          (enemyState.target.r === b.r && enemyState.target.c === b.c)) {
+        enemyState = ENM.cancelTarget(enemyState, enemyState.target.r, enemyState.target.c);
+        clearWarn(a.r, a.c);
+        clearWarn(b.r, b.c);
+      }
+    }
+    // 消除联动（规则2）：解冻被消两牌的正交邻冻结格，解冻瞬间播放碎裂动画
+    var thawed = FRZ.frozenList(frostState);
+    var thawKeys = thawed.filter(function (p) {
+      return Math.abs(p.r - a.r) + Math.abs(p.c - a.c) === 1 ||
+             Math.abs(p.r - b.r) + Math.abs(p.c - b.c) === 1;
+    });
+    if (thawKeys.length) {
+      frostState = FRZ.thawAround(frostState, a.r, a.c, b.r, b.c);
+      SFX.thaw();
+      thawKeys.forEach(function (p) { playThaw(p.r, p.c); });
+    }
 
     var now = Date.now();
     var gap = lastMatchAt ? now - lastMatchAt : Infinity;
@@ -556,6 +635,8 @@
     busy = true;
     SFX.shuffle();
     L.shuffleGrid(grid);
+    // 洗牌只换图案不换格子位置，frost 坐标口径不变 → frostState/enemyState 原样保留，
+    // 无需坐标重映射（issue #31 接线要求 1 的决定）
     var myGen = gen;
     Object.keys(slots).forEach(function (k) {
       var slot = slots[k], p = k.split(','), v = grid[+p[0]][+p[1]];
@@ -745,6 +826,14 @@
   function restart() {
     gen++;
     stopTimer();
+    // 冻冰/巡猎者重置（issue #31）：首次 restart() 早于接线段初始化，typeof 兜底
+    if (typeof frostState !== 'undefined') {
+      frostState = FRZ.create();
+      enemyState = null;
+      hunterEnabled = false;
+      lastWarnSoundAt = 0;
+      renderFrostDebugBtn();
+    }
     score = 0; combo = 0; maxCombo = 0; lastMatchAt = 0;
     tState = TM.create(mode);
     paused = false;
@@ -769,6 +858,152 @@
   document.getElementById('restart').addEventListener('click', restart);
   document.getElementById('again').addEventListener('click', restart);
   window.addEventListener('resize', layout);
+
+  /* ---------------- 冻冰 / 巡猎者接线（issue #31，T4） ----------------
+   * frostState / enemyState 为 frost.js / enemy.js 的纯函数状态；本层负责：
+   *   - 心跳驱动 Enemy.tick（沿用 onTimerTick 的 setInterval 250ms 模式，
+   *     独立 interval，内部按 running/paused/enabled 门控）
+   *   - 事件 → Frost 状态迁移 + DOM 类名 + 音效
+   *   - 可解性回滚：本单不做（T2 isBoardSolvable 为接口预留；上限 4 +
+   *     玩家消除邻格解冻通道已保证实践可解，T6 内容调优时再验证）——取舍记录见 issue。
+   */
+  var frostState = FRZ.create();  // 冻冰状态（洗牌不换格子位置，坐标不变，洗牌后原样保留）
+  var enemyState = null;          // null = 巡猎者未上线
+  var hunterEnabled = false;      // 「❄ 测试」调试开关（T5 关卡装载后移除）
+  var lastWarnSoundAt = 0;        // 预警滴答节流：每秒至多一次
+
+  // T4 临时调试参数：战役 L3「巡猎初鸣」（campaign.js LEVELS[3].hunter，正式装载归 T5）
+  var HUNTER_CADENCE_MS = 25000;
+  var HUNTER_TELEGRAPH_MS = 3000;
+
+  function hunterCtx() {
+    var tiles = {}, frozen = {};
+    Object.keys(slots).forEach(function (k) { tiles[k] = true; });
+    FRZ.frozenList(frostState).forEach(function (p) {
+      frozen[p.r + ',' + p.c] = true;
+      delete tiles[p.r + ',' + p.c]; // 已冻结格不可作目标
+    });
+    return {
+      tiles: tiles,
+      frozen: frozen,
+      canFreeze: FRZ.countFrozen(frostState) < FRZ.MAX_FROZEN,
+      rng: Math.random
+    };
+  }
+
+  function setSlotClass(r, c, cls, on) {
+    var s = slots[r + ',' + c];
+    if (s) s.classList.toggle(cls, on);
+  }
+
+  function clearWarn(r, c) {
+    setSlotClass(r, c, 'tile-frost-warn', false);
+  }
+
+  function playThaw(r, c) {
+    var s = slots[r + ',' + c];
+    if (!s) return;
+    s.classList.remove('tile-thawing');
+    void s.offsetWidth; // 重置动画
+    s.classList.add('tile-thawing');
+    var myGen = gen;
+    setTimeout(function () { if (myGen === gen) s.classList.remove('tile-thawing'); }, 640);
+  }
+
+  // 预警红晕：仍在预警期，或期满但敌人本周期目标仍是该格（等下一 tick 发 freeze，避免闪烁）
+  function warnActive(k, now) {
+    var p = k.split(',');
+    if (FRZ.isTelegraphActive(frostState, +p[0], +p[1], now)) return true;
+    return !!(enemyState && enemyState.target &&
+      enemyState.target.r === +p[0] && enemyState.target.c === +p[1]);
+  }
+
+  function syncFrostVisuals(now) {
+    var frozen = {};
+    FRZ.frozenList(frostState).forEach(function (p) { frozen[p.r + ',' + p.c] = true; });
+    Object.keys(slots).forEach(function (k) {
+      var s = slots[k];
+      s.classList.toggle('tile-frozen', !!frozen[k]);
+      var warn = warnActive(k, now);
+      if (!warn) s.classList.remove('tile-frost-warn');
+      else if (frozen[k] !== true) s.classList.add('tile-frost-warn');
+    });
+  }
+
+  function handleEnemyEvent(ev, now) {
+    if (ev.type === 'telegraph') {
+      frostState = FRZ.telegraph(frostState, ev.r, ev.c, now, HUNTER_TELEGRAPH_MS);
+      setSlotClass(ev.r, ev.c, 'tile-frost-warn', true);
+      SFX.warn();
+      lastWarnSoundAt = now;
+    } else if (ev.type === 'freeze') {
+      var out = FRZ.freeze(frostState, ev.r, ev.c, now);
+      frostState = out.state;
+      if (out.applied) {
+        clearWarn(ev.r, ev.c);
+        setSlotClass(ev.r, ev.c, 'tile-frozen', true);
+        SFX.freeze();
+      }
+      // applied=false（上限/重复竞态）：Frost 兜底拒绝，静默
+      // 取舍记录（issue #31 要求5）：本单不做可解性回滚——T2 isBoardSolvable 为接口
+      // 预留，上限 4 + 玩家消除邻格解冻通道已保证实践可解，T6 内容调优时再验证。
+    } else if (ev.type === 'cancel') {
+      clearWarn(ev.r, ev.c);
+    }
+    // 'skip'：无目标/达上限，本无红晕与音效，无需处理
+  }
+
+  function onHunterTick() {
+    if (!enemyState || !running || paused) return;
+    var now = Date.now();
+    var res = ENM.tick(enemyState, now, hunterCtx());
+    enemyState = res.state;
+    res.events.forEach(function (ev) { handleEnemyEvent(ev, now); });
+    syncFrostVisuals(now);
+    if (ENM.isThreatening(enemyState, now) && now - lastWarnSoundAt >= 1000) {
+      lastWarnSoundAt = now;
+      SFX.warn();
+    }
+  }
+
+  setInterval(onHunterTick, 250); // 沿用现有 setInterval 心跳模式（同 onTimerTick）
+
+  function startHunter(immediate) {
+    var now = Date.now();
+    if (immediate) {
+      // 把创建时刻回拨一个周期，使首个行动对齐到现在，走真实 tick/事件管线选目标
+      enemyState = ENM.create(HUNTER_CADENCE_MS, HUNTER_TELEGRAPH_MS, now - HUNTER_CADENCE_MS);
+      var res = ENM.tick(enemyState, now, hunterCtx());
+      enemyState = res.state;
+      res.events.forEach(function (ev) { handleEnemyEvent(ev, now); });
+    } else {
+      enemyState = ENM.create(HUNTER_CADENCE_MS, HUNTER_TELEGRAPH_MS, now);
+    }
+  }
+
+  function renderFrostDebugBtn() {
+    frostBtn.classList.toggle('on', hunterEnabled);
+    frostBtn.setAttribute('aria-pressed', hunterEnabled ? 'true' : 'false');
+  }
+
+  frostBtn.addEventListener('click', function () {
+    hunterEnabled = !hunterEnabled;
+    if (hunterEnabled) {
+      startHunter(true); // 启动并按巡猎参数立即对随机格登记预警，便于人工验证
+      showToast('巡猎者已上线（测试）');
+    } else {
+      enemyState = null;
+      // 停猎：清掉未生效的预警登记，已冻结格保留（仍可经消除邻格解冻）
+      frostState = { frozen: frostState.frozen, telegraphs: {} };
+      Object.keys(slots).forEach(function (k) {
+        slots[k].classList.remove('tile-frost-warn');
+      });
+      showToast('巡猎者已下线（测试）');
+    }
+    renderFrostDebugBtn();
+  });
+
+  renderFrostDebugBtn();
 
   /* ---------------- 难度选择 ---------------- */
   var diffBtns = Array.prototype.slice.call(
