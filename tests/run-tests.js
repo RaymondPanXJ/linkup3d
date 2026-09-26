@@ -12,10 +12,12 @@ var uiChecks = require('./ui-static-check.js');
 var spaceChecks = require('./space-static-check.js');
 var timerChecks = require('./timer-static-check.js');
 var rankChecks = require('./rank-static-check.js');
+var themeChecks = require('./theme-static-check.js');
 
 var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   spaceTests.runAll(), timerTests.runAll(), uiChecks.runChecks(),
-  spaceChecks.runChecks(), timerChecks.runChecks(), rankChecks.runChecks());
+  spaceChecks.runChecks(), timerChecks.runChecks(), rankChecks.runChecks(),
+  themeChecks.runChecks());
 var pass = 0;
 
 results.forEach(function (r) {

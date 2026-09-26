@@ -17,6 +17,21 @@
 
   // 每千平方像素的星星数量（三层合计），及每层占半径/速度权重
   var DENSITY = 0.00022;
+
+  // 星点颜色：优先读主题 CSS 变量（--star-1/2/3），无 DOM（Node）时回退深空默认值
+  var STAR_COLOR_DEFAULTS = { star1: '#bcd4ff', star2: '#ffe9c4', star3: '#ffffff' };
+  function readThemeColors() {
+    var out = { star1: STAR_COLOR_DEFAULTS.star1, star2: STAR_COLOR_DEFAULTS.star2, star3: STAR_COLOR_DEFAULTS.star3 };
+    try {
+      var cs = getComputedStyle(document.documentElement);
+      var names = { star1: '--star-1', star2: '--star-2', star3: '--star-3' };
+      for (var k in names) {
+        var v = cs.getPropertyValue(names[k]);
+        if (v && v.trim()) out[k] = v.trim();
+      }
+    } catch (e) { /* Node / 无 CSSOM 环境：回退默认值 */ }
+    return out;
+  }
   var LAYERS = [
     { rMin: 0.4, rMax: 0.9, vx: 2.0, vy: 1.2, tw: 0.9 },   // 远：小而慢
     { rMin: 0.7, rMax: 1.4, vx: 4.5, vy: 2.6, tw: 1.5 },
@@ -78,6 +93,16 @@
     var stars = [], w = 0, h = 0, rafId = null, last = 0;
     var reduced = typeof matchMedia === 'function' &&
                   matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var colors = readThemeColors();
+
+    // 主题切换（html[data-theme] 变化）时刷新星点颜色
+    var themeObserver = null;
+    if (typeof MutationObserver === 'function' && typeof document !== 'undefined') {
+      themeObserver = new MutationObserver(function () { colors = readThemeColors(); });
+      try {
+        themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      } catch (e) { themeObserver = null; }
+    }
 
     function resize() {
       w = canvas.clientWidth || window.innerWidth;
@@ -116,7 +141,7 @@
         }
         var a = starAlpha(s.ph, 0.55, 0.4);
         ctx.globalAlpha = a;
-        ctx.fillStyle = i % 7 === 3 ? '#bcd4ff' : (i % 11 === 5 ? '#ffe9c4' : '#ffffff');
+        ctx.fillStyle = i % 7 === 3 ? colors.star1 : (i % 11 === 5 ? colors.star2 : colors.star3);
         ctx.beginPath();
         ctx.arc(s.x * w, s.y * h, s.r, 0, Math.PI * 2);
         ctx.fill();
@@ -152,6 +177,7 @@
     return {
       stop: function () {
         pause();
+        if (themeObserver) { try { themeObserver.disconnect(); } catch (e) { /* 忽略 */ } }
         window.removeEventListener('resize', resize);
         document.removeEventListener('visibilitychange', onVisibility);
       }
@@ -161,6 +187,8 @@
   return {
     DENSITY: DENSITY,
     LAYERS: LAYERS,
+    STAR_COLOR_DEFAULTS: STAR_COLOR_DEFAULTS,
+    readThemeColors: readThemeColors,
     starCountFor: starCountFor,
     isCoarsePointer: isCoarsePointer,
     densityScaleFor: densityScaleFor,
