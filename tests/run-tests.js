@@ -18,12 +18,15 @@ var hintChecks = require('./hint-static-check.js');
 var campaignTests = require('./campaign.define.js');
 var saveTests = require('./save.define.js');
 var campaignChecks = require('./campaign-static-check.js');
+var frostTests = require('./frost.define.js');
+var frostChecks = require('./frost-static-check.js');
 
 var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   spaceTests.runAll(), timerTests.runAll(), hintTests.runAll(), uiChecks.runChecks(),
   spaceChecks.runChecks(), timerChecks.runChecks(), rankChecks.runChecks(),
   themeChecks.runChecks(), hintChecks.runChecks(),
-  campaignTests.runAll(), saveTests.runAll(), campaignChecks.runChecks());
+  campaignTests.runAll(), saveTests.runAll(), campaignChecks.runChecks(),
+  frostTests.runAll(), frostChecks.runChecks());
 var pass = 0;
 
 results.forEach(function (r) {
