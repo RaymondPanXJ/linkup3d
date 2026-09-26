@@ -86,6 +86,25 @@
   var timeLabelEl = document.getElementById('timeLabel');
   var settleBtnIds = ['restart', 'hint', 'help', 'pause', 'rank'];
 
+  /* ---------------- 视效粒子层（issue #41，T7，纯表现层零逻辑） ----------------
+   * fx.js 独立 canvas #fxlayer + 按需 rAF（取舍见 fx.js 头注释）；
+   * reduced-motion 时 FX 内部保证 burst 为 no-op。 */
+  var FX = window.FX;
+  var fxLayer = FX.mount(document.getElementById('fxlayer'));
+
+  // 目标格中心的视口坐标 → 触发一次粒子 burst
+  function fxBurst(r, c, kind) {
+    var s = slots[r + ',' + c];
+    if (!s) return;
+    var rect = s.getBoundingClientRect();
+    fxLayer.burst(rect.left + rect.width / 2, rect.top + rect.height / 2, kind);
+  }
+
+  // 预警收缩圈时长与 telegraphMs 同步（CSS 用 --telegraph-ms 驱动动画，issue #41）
+  function setTelegraphMs(ms) {
+    document.documentElement.style.setProperty('--telegraph-ms', ms + 'ms');
+  }
+
   /* ---------------- 主题（深空→浅色→霓虹 循环，issue #15） ---------------- */
   var THEME_KEY = 'linkup3d.theme';
   var THEMES = ['deep-space', 'light', 'neon'];
@@ -592,7 +611,7 @@
     if (thawKeys.length) {
       frostState = FRZ.thawAround(frostState, a.r, a.c, b.r, b.c);
       SFX.thaw();
-      thawKeys.forEach(function (p) { playThaw(p.r, p.c); });
+      thawKeys.forEach(function (p) { playThaw(p.r, p.c); fxBurst(p.r, p.c, 'thaw'); });
     }
 
     var now = Date.now();
@@ -712,6 +731,8 @@
     scoreEl.textContent = score;
     comboEl.textContent = CB.displayCombo(combo);
     comboStat.classList.toggle('active', CB.isActive(combo));
+    // 连击 ≥3 棋盘呼吸光晕钩子（issue #41，纯 CSS 由 body.combo-active 驱动）
+    document.body.classList.toggle('combo-active', CB.isActive(combo));
     bestEl.textContent = best;
     pairsEl.textContent = L.countTiles(grid) / 2;
   }
@@ -971,6 +992,7 @@
   }
 
   var HUNTER_TELEGRAPH_MS = 3000; // 预警 3s（issue #29 定稿，供 enemy.tick 兜底）
+  setTelegraphMs(HUNTER_TELEGRAPH_MS); // 预警收缩圈动画时长默认值（issue #41）
 
   function handleEnemyEvent(ev, now) {
     if (ev.type === 'telegraph') {
@@ -985,6 +1007,7 @@
         clearWarn(ev.r, ev.c);
         setSlotClass(ev.r, ev.c, 'tile-frozen', true);
         SFX.freeze();
+        fxBurst(ev.r, ev.c, 'freeze'); // 冻结瞬间冰晶迸溅（issue #41）
       }
       // applied=false（上限/重复竞态）：Frost 兜底拒绝，静默
       // 取舍记录（issue #31 要求5）：本单不做可解性回滚——T2 isBoardSolvable 为接口
@@ -1142,6 +1165,8 @@
     // 巡猎者：hunter 非空按关卡参数启动（时刻回拨一个周期，立即走真实 tick 管线选目标）
     if (lv.hunter) {
       var hn = Date.now();
+      // 预警收缩圈动画时长与本关 telegraphMs 同步（issue #41；L8 为 2500ms）
+      setTelegraphMs(lv.hunter.telegraphMs);
       enemyState = ENM.create(lv.hunter.cadenceMs, lv.hunter.telegraphMs,
         hn - lv.hunter.cadenceMs);
       var res = ENM.tick(enemyState, hn, hunterCtx());
@@ -1175,7 +1200,17 @@
     finalStarsEl.classList.add('show');
     Array.prototype.forEach.call(
       finalStarsEl.querySelectorAll('.fstar'),
-      function (el, i) { if (i < n) el.classList.add('lit'); });
+      function (el, i) {
+        if (i >= n) return;
+        el.classList.add('lit');
+        // 点亮瞬间星尘 burst，与逐颗点亮过渡延迟（300ms/颗）同步（issue #41）
+        var rect = el.getBoundingClientRect();
+        var cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+        var myGen = gen;
+        setTimeout(function () {
+          if (myGen === gen) fxLayer.burst(cx, cy, 'star');
+        }, i * 300 + 200);
+      });
   }
 
   function showSettleButtons(next) {

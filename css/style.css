@@ -1277,8 +1277,118 @@ button#frostDebug.on {                       /* 「❄ 测试」开关激活态 
   color: #bfeaff;
 }
 
+/* ---------------- T7 视效打磨（issue #41，纯表现层） ---------------- */
+/* 粒子层：盖在舞台/弹窗之上的装饰 canvas，恒不吃事件 */
+#fxlayer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 40;
+  pointer-events: none;
+}
+
+/* 预警收缩圈：外圈经两次「收缩+频闪」后冻结。时长由 JS 注入 --telegraph-ms
+ * （默认 3000ms 兜底），与 telegraphMs 同步（issue #41）。 */
+.tile-slot.tile-frost-warn::before {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 84, 84, .85);
+  box-shadow: 0 0 0 1px rgba(255, 84, 84, .4), inset 0 0 10px rgba(255, 84, 84, .35);
+  transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(1.7);
+  opacity: 0;
+  pointer-events: none;
+  animation: frost-shrink var(--telegraph-ms, 3000ms) linear forwards;
+}
+@keyframes frost-shrink {
+  0%   { transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(1.7); opacity: 0; }
+  10%  { opacity: 1; }
+  25%  { transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(1.05); opacity: .4; }
+  28%  { transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(1.6);  opacity: 1; }
+  50%  { transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(1.05); opacity: .4; }
+  53%  { transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(1.6);  opacity: 1; }
+  75%  { transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(1.02); opacity: .4; }
+  78%  { transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(1.5);  opacity: 1; }
+  96%  { transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(1.0);  opacity: 1; }
+  100% { transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(0.92); opacity: 0; }
+}
+
+/* 冻结质感：冰壳渐变 + 内阴影，冻结瞬间 80ms scale 弹跳（issue #41） */
+.tile-slot.tile-frozen { animation: frost-land .08s ease-out; }
+@keyframes frost-land {
+  50% { transform: scale(1.07); }
+}
+.tile-slot.tile-frozen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg,
+    rgba(210, 245, 255, .5) 0%, rgba(140, 215, 255, .18) 38%,
+    rgba(210, 245, 255, .34) 55%, rgba(120, 200, 255, .22) 100%);
+  box-shadow: inset 0 0 14px rgba(200, 240, 255, .75),
+              inset 3px 4px 8px rgba(255, 255, 255, .55);
+  transform: translateZ(calc(var(--depth) / 2 + 1px));
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* 解冻质感：碎裂纹理闪动 + 透明度渐隐（覆盖层 .tile-thawing::after 不变） */
+.tile-slot.tile-thawing::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background:
+    linear-gradient(58deg, transparent 44%, rgba(255, 255, 255, .9) 46%, transparent 48%),
+    linear-gradient(-34deg, transparent 62%, rgba(210, 245, 255, .8) 64%, transparent 66%),
+    linear-gradient(82deg, transparent 26%, rgba(210, 245, 255, .7) 28%, transparent 30%);
+  transform: translateZ(calc(var(--depth) / 2 + 2px));
+  pointer-events: none;
+  z-index: 3;
+  animation: thaw-crack .56s ease-out forwards;
+}
+@keyframes thaw-crack {
+  0%   { opacity: 1; }
+  60%  { opacity: .8; }
+  100% { opacity: 0; }
+}
+
+/* 连击 ≥3（combo active）：棋盘轻微呼吸光晕，纯 CSS（issue #41） */
+#stage { border-radius: 24px; }
+body.combo-active #stage {
+  animation: combo-breathe 1.6s ease-in-out infinite;
+}
+@keyframes combo-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(125, 216, 255, 0); }
+  50%      { box-shadow: 0 0 46px 6px rgba(125, 216, 255, .22); }
+}
+
+/* 结算星级：点亮时一次轻微 pop（scale 1→1.45→1.25，最终态与既有 .lit 一致），
+ * 级联延迟复用既有 transition-delay 节奏（300/600ms，issue #41） */
+.final-stars .fstar.lit { animation: star-pop .4s ease-out both; }
+.final-stars .fstar.lit:nth-child(2) { animation-delay: .3s; }
+.final-stars .fstar.lit:nth-child(3) { animation-delay: .6s; }
+@keyframes star-pop {
+  0%   { transform: scale(1); }
+  60%  { transform: scale(1.45); }
+  100% { transform: scale(1.25); }
+}
+
 /* 弱化动效偏好：仅静态冰 tint / 红晕描边，关闭呼吸与碎冰动画 */
 @media (prefers-reduced-motion: reduce) {
+  /* issue #41：收缩圈退化为静态红边框；弹跳/碎裂/呼吸/星级 pop 全部关停 */
+  .tile-slot.tile-frost-warn::before {
+    animation: none;
+    transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(1.1);
+    opacity: 1;
+  }
+  .tile-slot.tile-frozen { animation: none; }
+  .tile-slot.tile-thawing::before { animation: none; opacity: 0; }
+  body.combo-active #stage { animation: none; }
+  .final-stars .fstar.lit { animation: none; }
   .tile-slot.tile-frozen::after {
     background: rgba(150, 215, 255, .42);
     box-shadow: inset 0 0 8px rgba(210, 245, 255, .6);
