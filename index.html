@@ -33,6 +33,8 @@
       <button id="rank" type="button" aria-label="本地排行榜">排行</button>
       <button id="restart" type="button">重新开始</button>
       <button id="theme" type="button" aria-label="切换主题">◐</button>
+      <button id="hint" type="button" aria-label="提示（每局 3 次）">💡 提示 <span id="hintCount">3</span></button>
+      <button id="help" type="button" aria-label="重看新手引导">?</button>
       <button id="pause" type="button" aria-label="暂停（空格）" aria-pressed="false">⏸</button>
       <button id="music" type="button" aria-label="背景音乐">♪</button>
       <button id="mute" type="button" aria-label="静音">🔊</button>
@@ -80,6 +82,17 @@
         </thead>
         <tbody id="rankTbody"></tbody>
       </table>
+  <div id="tutorial" aria-hidden="true">
+    <div class="tut-card" role="dialog" aria-modal="true" aria-labelledby="tutTitle">
+      <h3 id="tutTitle"></h3>
+      <p id="tutText"></p>
+      <div class="tut-dots" id="tutDots">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="tut-actions">
+        <button id="tutSkip" type="button">跳过引导</button>
+        <button id="tutNext" type="button">下一步</button>
+      </div>
     </div>
   </div>
 
@@ -90,6 +103,8 @@
   <script src="js/music.js"></script>
   <script src="js/stars.js"></script>
   <script src="js/mobile.js"></script>
+  <script src="js/hint.js"></script>
+  <script src="js/tutorial.js"></script>
   <script src="js/game.js"></script>
 </body>
 </html>

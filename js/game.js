@@ -13,6 +13,7 @@
   var TM = window.Timer;
   var RK = window.Ranking;
   var Mobile = window.Link3DMobile;
+  var Hint = window.Hint;
 
   /* ---------------- 难度 ---------------- */
   var DIFFICULTIES = {
@@ -91,6 +92,9 @@
   });
 
   applyTheme();
+  var hintBtn = document.getElementById('hint');
+  var hintCountEl = document.getElementById('hintCount');
+  var helpBtn = document.getElementById('help');
 
   /* ---------------- 音效（WebAudio 程序化合成，零音频文件） ---------------- */
   var SFX = (function () {
@@ -283,6 +287,10 @@
 
   var REMOVE_MS = 560;
   var SHUFFLE_MS = 900;
+  var SHUFFLE_NOTICE_MS = 900; // 「正在洗牌」toast 至少展示时长（issue #16 ≥800ms）
+
+  var hintsLeft = Hint.HINTS_PER_GAME; // 每局 3 次，不持久化
+  var hintTimer = null;
 
   /* ---------------- 最高分（按难度分键存储） ---------------- */
   function loadBest() {
@@ -528,15 +536,25 @@
       if (L.countTiles(grid) === 0) {
         win();
       } else if (!L.hasSolvablePair(grid)) {
-        doShuffle();
+        announceShuffle();
       }
     }, REMOVE_MS);
+  }
+
+  /* 无可连对：先解释 ≥800ms 再洗牌，避免玩家对突然变化摸不着头脑（issue #16） */
+  function announceShuffle() {
+    busy = true;
+    showToast('无可连对，正在洗牌', SHUFFLE_NOTICE_MS);
+    var myGen = gen;
+    setTimeout(function () {
+      if (myGen !== gen) return;
+      doShuffle();
+    }, SHUFFLE_NOTICE_MS);
   }
 
   function doShuffle() {
     busy = true;
     SFX.shuffle();
-    showToast('无可连对子，自动洗牌');
     L.shuffleGrid(grid);
     var myGen = gen;
     Object.keys(slots).forEach(function (k) {
@@ -682,11 +700,12 @@
   });
 
   var toastTimer = null;
-  function showToast(msg) {
+  function showToast(msg, ms) {
     toastEl.textContent = msg;
     toastEl.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 1600);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('show'); },
+      ms || 1600);
   }
 
   function showResult(title, note) {
@@ -730,6 +749,9 @@
     tState = TM.create(mode);
     paused = false;
     lastRoundTs = 0;
+    hintsLeft = Hint.HINTS_PER_GAME;
+    clearHintHighlight();
+    renderHintBtn();
     bestStat.classList.remove('record');
     selected = null; busy = false; running = true;
     board.classList.remove('paused');
@@ -899,6 +921,53 @@
     rankView = btn.dataset.key;
     renderRankPanel();
   });
+
+  /* ---------------- 提示（issue #16：每局 3 次，高亮可连对 + 解释路径） ---------------- */
+  function renderHintBtn() {
+    hintCountEl.textContent = hintsLeft;
+    hintBtn.disabled = hintsLeft <= 0;
+  }
+
+  function clearHintHighlight() {
+    clearTimeout(hintTimer);
+    Object.keys(slots).forEach(function (k) {
+      slots[k].classList.remove('hint');
+    });
+  }
+
+  hintBtn.addEventListener('click', function () {
+    if (busy || !running || hintsLeft <= 0) return;
+    var pair = L.findSolvablePair(grid);
+    if (!pair) return; // 理论上无解时已自动洗牌，这里不做额外处理
+    hintsLeft--;
+    renderHintBtn();
+    clearHintHighlight();
+    var sa = slots[pair.a.r + ',' + pair.a.c], sb = slots[pair.b.r + ',' + pair.b.c];
+    if (sa) sa.classList.add('hint');
+    if (sb) sb.classList.add('hint');
+    showToast(Hint.describePath(pair.path, grid), 2400);
+    hintTimer = setTimeout(clearHintHighlight, 2400);
+  });
+
+  /* ---------------- 新手引导（issue #16：首访 4 步卡片，「?」随时重放） ---------------- */
+  var tutorial = window.Tutorial.mount({
+    container: document.getElementById('tutorial'),
+    nextBtn: document.getElementById('tutNext'),
+    skipBtn: document.getElementById('tutSkip'),
+    dots: document.getElementById('tutDots'),
+    title: document.getElementById('tutTitle'),
+    text: document.getElementById('tutText'),
+    storage: {
+      get: function () { return localStorage.getItem(Hint.TUT_KEY); },
+      set: function () { localStorage.setItem(Hint.TUT_KEY, '1'); }
+    }
+  });
+
+  helpBtn.addEventListener('click', function () { tutorial.show(); });
+
+  var seenTutorial = false;
+  try { seenTutorial = !!localStorage.getItem(Hint.TUT_KEY); } catch (e) { /* 无存储视为未看过 */ }
+  if (!seenTutorial) tutorial.show();
 
   /* ---------------- 动态星空背景 ---------------- */
   window.Stars.mount(document.getElementById('starfield'));
