@@ -10,6 +10,7 @@ var path = require('path');
 var html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 var css = fs.readFileSync(path.join(__dirname, '..', 'css', 'style.css'), 'utf8');
 var game = fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8');
+var hint = fs.readFileSync(path.join(__dirname, '..', 'js', 'hint.js'), 'utf8');
 
 function check(name, ok, detail) {
   return { name: name, pass: !!ok, detail: detail || (ok ? 'ok' : 'FAILED') };
@@ -72,6 +73,12 @@ function runChecks() {
     /if \(!seenTutorial\) tutorial\.show\(\)/.test(game)));
   out.push(check('Tutorial 挂载提供 localStorage 读写适配器',
     /Tutorial\.mount\(\{[\s\S]{0,500}localStorage\.setItem\(Hint\.TUT_KEY/.test(game)));
+
+  /* ---------- 引导文案与已上线功能一致（issue #23） ---------- */
+  out.push(check('引导文案无「开发中/即将上线」等过时表述',
+    !/开发中|即将上线|敬请期待/.test(hint)));
+  out.push(check('引导末步提及已上线的限时模式与主题切换',
+    /限时 120s/.test(hint) && /主题切换/.test(hint)));
 
   return out;
 }
