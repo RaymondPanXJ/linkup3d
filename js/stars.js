@@ -23,8 +23,23 @@
     { rMin: 1.0, rMax: 2.0, vx: 8.0, vy: 4.4, tw: 2.2 }    // 近：大而快
   ];
 
-  function starCountFor(w, h) {
-    return Math.max(40, Math.min(360, Math.round(w * h * DENSITY)));
+  // scale：性能降级系数（移动端传 0.5，星星减半）；缺省 1 保持原行为
+  function starCountFor(w, h, scale) {
+    var s = (typeof scale === 'number' && scale > 0 && scale <= 1) ? scale : 1;
+    return Math.round(Math.max(40, Math.min(360, Math.round(w * h * DENSITY))) * s);
+  }
+
+  // 是否为触摸（粗指针）设备：无 matchMedia / 查询异常一律视为桌面
+  function isCoarsePointer(matchMedia) {
+    try {
+      return typeof matchMedia === 'function' &&
+             matchMedia('(pointer: coarse)').matches === true;
+    } catch (e) { return false; }
+  }
+
+  // 星星密度降级系数：触摸设备 0.5（减半），桌面 1
+  function densityScaleFor(coarse) {
+    return coarse ? 0.5 : 1;
   }
 
   // 半径（px）：layerIndex + [0,1) 随机量 -> 该层半径区间内的值
@@ -57,6 +72,9 @@
     if (!ctx) return { stop: function () {} };
 
     var dpr = Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1);
+    // 移动端（pointer:coarse）星星减半；无 matchMedia 视为桌面
+    var densityScale = densityScaleFor(isCoarsePointer(
+      typeof matchMedia === 'function' ? matchMedia : null));
     var stars = [], w = 0, h = 0, rafId = null, last = 0;
     var reduced = typeof matchMedia === 'function' &&
                   matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -73,7 +91,7 @@
 
     function seed() {
       stars = [];
-      var n = starCountFor(w, h);
+      var n = starCountFor(w, h, densityScale);
       for (var i = 0; i < n; i++) {
         var li = i % LAYERS.length;
         stars.push({
@@ -144,6 +162,8 @@
     DENSITY: DENSITY,
     LAYERS: LAYERS,
     starCountFor: starCountFor,
+    isCoarsePointer: isCoarsePointer,
+    densityScaleFor: densityScaleFor,
     pickStarRadius: pickStarRadius,
     starAlpha: starAlpha,
     advance: advance,

@@ -2,7 +2,8 @@
  * game.js — 3D 连连看 UI 与游戏逻辑（纯原生 JS）
  * 依赖：js/link3d.js（window.Link3D）、js/combo.js（window.Combo）、
  *       js/ranking.js（window.Ranking）、js/music.js（window.Music）、
- *       js/stars.js（window.Stars）、js/timer.js（window.Timer）
+ *       js/stars.js（window.Stars）、js/timer.js（window.Timer）、
+ *       js/mobile.js（window.Link3DMobile）
  */
 (function () {
   'use strict';
@@ -11,6 +12,7 @@
   var CB = window.Combo;
   var TM = window.Timer;
   var RK = window.Ranking;
+  var Mobile = window.Link3DMobile;
 
   /* ---------------- 难度 ---------------- */
   var DIFFICULTIES = {
@@ -266,18 +268,30 @@
     best = loadBest();
   }
 
+  /* ---------------- 移动端判定（issue #14） ---------------- */
+  // pointer:coarse 或 UA 兜底；无 matchMedia 的旧设备视为桌面（不倾斜逻辑另行降级）
+  var IS_TOUCH = (function () {
+    try {
+      if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return true;
+    } catch (e) { /* 忽略 */ }
+    return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
+  })();
+  if (IS_TOUCH && document.body) document.body.classList.add('mobile-lite');
+
   /* ---------------- 布局（响应式） ---------------- */
   function layout() {
     var dims = currentDims();
     var ROWS = dims.rows, COLS = dims.cols;
-    var padX = window.innerWidth < 560 ? 24 : 60;
+    var padX = window.innerWidth < 560 ? 10 : 60;
     var hudH = document.querySelector('.hud').getBoundingClientRect().height;
     var titleH = document.querySelector('h1').getBoundingClientRect().height +
                  document.querySelector('.subtitle').getBoundingClientRect().height;
     var availW = Math.max(280, window.innerWidth - padX * 2);
-    var availH = Math.max(240, window.innerHeight - titleH - hudH - 90);
+    var availH = Math.max(240, window.innerHeight - titleH - hudH - (window.innerWidth < 560 ? 20 : 90));
+    // 窄屏（≤420px）不乘 3D 透视缩放，保证 360px 竖屏下 6×8 牌 ≥32px 完整可见
+    var narrow = window.innerWidth <= 420;
     cellW = Math.min(100, availW / (COLS + 0.6), availH / (ROWS + 0.9));
-    cellW = Math.max(42, cellW);
+    cellW = Math.max(narrow ? 32 : 42, cellW);
     cellH = cellW;
 
     var bw = COLS * cellW, bh = ROWS * cellH;
@@ -292,8 +306,9 @@
     document.documentElement.style.setProperty('--cell-w', cellW + 'px');
     document.documentElement.style.setProperty('--cell-h', cellH + 'px');
 
-    // 窗口过小时缩小整个场景，保证不破版
-    var fit = Math.min(1, availW / (bw + 30), availH / (bh + 30));
+    // 窗口过小时缩小整个场景，保证不破版；窄屏跳过缩放（热区/最小牌宽优先，见 mobile.js）
+    var fit = Mobile.sceneScale(window.innerWidth,
+      Math.min(availW / (bw + 30), availH / (bh + 30)));
     scene.style.transform = 'scale(' + fit.toFixed(3) + ')';
 
     for (var key in slots) {
@@ -307,18 +322,40 @@
     slot.style.top = ((r - 1) * cellH + cellH * 0.08) + 'px';
   }
 
-  /* 轻微跟随指针转动棋盘，强化 3D 感 */
-  stage.addEventListener('pointermove', function (e) {
-    if (window.matchMedia('(pointer: coarse)').matches) return;
-    var rx = 14 + ((e.clientY / window.innerHeight) - 0.5) * -8;
-    var ry = ((e.clientX / window.innerWidth) - 0.5) * 10;
+  /* 轻微跟随指针转动棋盘，强化 3D 感（issue #14：指针事件兼容 + 触摸驱动 + 降级） */
+  function applyTilt(x, y) {
+    var rx = 14 + ((y / window.innerHeight) - 0.5) * -8;
+    var ry = ((x / window.innerWidth) - 0.5) * 10;
     board.style.setProperty('--rx', rx.toFixed(2) + 'deg');
     board.style.setProperty('--ry', ry.toFixed(2) + 'deg');
-  });
-  stage.addEventListener('pointerleave', function () {
+  }
+  function resetTilt() {
     board.style.setProperty('--rx', '16deg');
     board.style.setProperty('--ry', '0deg');
-  });
+  }
+
+  var HAS_POINTER = ('onpointermove' in window) ||
+                    (typeof window.PointerEvent === 'function');
+  if (HAS_POINTER) {
+    // 桌面（鼠标等精确指针）：pointermove 驱动
+    stage.addEventListener('pointermove', function (e) {
+      if (e.pointerType === 'touch') return; // 触摸由下方 touchmove 处理
+      applyTilt(e.clientX, e.clientY);
+    });
+    stage.addEventListener('pointerleave', resetTilt);
+  }
+  if (typeof window.TouchEvent === 'function') {
+    // 触摸驱动倾斜：非 passive 以便 preventDefault 阻止页面滚动误触
+    stage.addEventListener('touchmove', function (e) {
+      var t = e.touches[0];
+      if (!t) return;
+      e.preventDefault();
+      applyTilt(t.clientX, t.clientY);
+    }, { passive: false });
+    stage.addEventListener('touchend', resetTilt);
+    stage.addEventListener('touchcancel', resetTilt);
+  }
+  /* 无 pointer 事件且无 touch 事件的旧设备：不注册任何倾斜监听，退化为固定视角 */
 
   /* ---------------- 建盘 ---------------- */
   function buildBoard() {
