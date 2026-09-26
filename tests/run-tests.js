@@ -6,11 +6,14 @@
 var tests = require('./tests.define.js');
 var comboTests = require('./combo.define.js');
 var spaceTests = require('./space.define.js');
+var timerTests = require('./timer.define.js');
 var uiChecks = require('./ui-static-check.js');
 var spaceChecks = require('./space-static-check.js');
+var timerChecks = require('./timer-static-check.js');
 
 var results = tests.runAll().concat(comboTests.runAll(), spaceTests.runAll(),
-  uiChecks.runChecks(), spaceChecks.runChecks());
+  timerTests.runAll(), uiChecks.runChecks(), spaceChecks.runChecks(),
+  timerChecks.runChecks());
 var pass = 0;
 
 results.forEach(function (r) {

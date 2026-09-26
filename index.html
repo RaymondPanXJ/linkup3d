@@ -16,14 +16,19 @@
     <div class="stat"><span class="label">得分</span><span class="value" id="score">0</span></div>
     <div class="stat combo" id="comboStat"><span class="label">连击</span><span class="value" id="combo">—</span></div>
     <div class="stat best" id="bestStat"><span class="label">最高分</span><span class="value" id="best">0</span></div>
-    <div class="stat"><span class="label">用时</span><span class="value" id="time">00:00</span></div>
+    <div class="stat" id="statTime"><span class="label" id="timeLabel">用时</span><span class="value" id="time">00:00</span></div>
     <div class="stat"><span class="label">剩余对数</span><span class="value" id="pairs">12</span></div>
+    <div class="mode" id="mode" role="group" aria-label="模式选择">
+      <button type="button" class="mode-btn" data-mode="endless">无尽</button>
+      <button type="button" class="mode-btn" data-mode="timed">限时 120s</button>
+    </div>
     <div class="difficulty" id="difficulty" role="group" aria-label="难度选择">
       <button type="button" class="diff-btn" data-key="easy">简单 4×4</button>
       <button type="button" class="diff-btn" data-key="normal">标准 4×6</button>
       <button type="button" class="diff-btn" data-key="hard">困难 6×8</button>
     </div>
     <button id="restart" type="button">重新开始</button>
+    <button id="pause" type="button" aria-label="暂停（空格）" aria-pressed="false">⏸</button>
     <button id="music" type="button" aria-label="背景音乐">♪</button>
     <button id="mute" type="button" aria-label="静音">🔊</button>
   </div>
@@ -39,9 +44,17 @@
 
   <div id="toast"></div>
 
+  <div id="pauseScreen" role="dialog" aria-modal="true" aria-label="游戏已暂停">
+    <div class="pause-card">
+      <h2>已暂停</h2>
+      <p>计时已冻结 · 按空格或点击继续</p>
+      <button id="resume" type="button">继续游戏</button>
+    </div>
+  </div>
+
   <div id="overlay">
     <div class="panel">
-      <h2>恭喜通关</h2>
+      <h2 id="finalTitle">恭喜通关</h2>
       <p class="final-score" id="finalScore">0</p>
       <p id="finalTime">用时 00:00</p>
       <button id="again" type="button">再来一局</button>
@@ -50,6 +63,7 @@
 
   <script src="js/link3d.js"></script>
   <script src="js/combo.js"></script>
+  <script src="js/timer.js"></script>
   <script src="js/music.js"></script>
   <script src="js/stars.js"></script>
   <script src="js/game.js"></script>

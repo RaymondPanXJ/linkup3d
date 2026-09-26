@@ -1,13 +1,15 @@
 /**
  * game.js — 3D 连连看 UI 与游戏逻辑（纯原生 JS）
  * 依赖：js/link3d.js（window.Link3D）、js/combo.js（window.Combo）、
- *       js/music.js（window.Music）、js/stars.js（window.Stars）
+ *       js/music.js（window.Music）、js/stars.js（window.Stars）、
+ *       js/timer.js（window.Timer）
  */
 (function () {
   'use strict';
 
   var L = window.Link3D;
   var CB = window.Combo;
+  var TM = window.Timer;
 
   /* ---------------- 难度 ---------------- */
   var DIFFICULTIES = {
@@ -45,10 +47,14 @@
   var bestStat = document.getElementById('bestStat');
   var toastEl = document.getElementById('toast');
   var overlay = document.getElementById('overlay');
+  var finalTitleEl = document.getElementById('finalTitle');
   var finalScoreEl = document.getElementById('finalScore');
   var finalTimeEl = document.getElementById('finalTime');
   var muteBtn = document.getElementById('mute');
   var musicBtn = document.getElementById('music');
+  var pauseBtn = document.getElementById('pause');
+  var pauseScreen = document.getElementById('pauseScreen');
+  var statTime = document.getElementById('statTime');
 
   /* ---------------- 音效（WebAudio 程序化合成，零音频文件） ---------------- */
   var SFX = (function () {
@@ -123,6 +129,17 @@
           tone(330, t + 0.05, 0.26, 'sine', 0.08, 988);
         });
       },
+      // 倒计时滴答：≤10s 每秒一次；critical（≤5s）用更高更急的双音
+      tick: function (critical) {
+        play(function (c, t) {
+          if (critical) {
+            tone(1320, t, 0.05, 'square', 0.07);
+            tone(1320, t + 0.08, 0.05, 'square', 0.07);
+          } else {
+            tone(988, t, 0.05, 'square', 0.07);
+          }
+        });
+      },
       // 通关：四音上行小号角
       win: function () {
         play(function (c, t) {
@@ -130,6 +147,15 @@
           for (var i = 0; i < seq.length; i++) {
             tone(seq[i], t + i * 0.13, 0.3, 'square', 0.07);
             tone(seq[i] * 2, t + i * 0.13, 0.24, 'sine', 0.05);
+          }
+        });
+      },
+      // 限时超时：三音下行低音号
+      lose: function () {
+        play(function (c, t) {
+          var seq = [392, 311.13, 261.63]; // G4 Eb4 C4
+          for (var i = 0; i < seq.length; i++) {
+            tone(seq[i], t + i * 0.16, 0.34, 'square', 0.07);
           }
         });
       }
@@ -197,12 +223,26 @@
   var combo = 0;
   var lastMatchAt = 0;
   var best = 0;              // 当前难度的历史最高分
-  var seconds = 0;
   var timerId = null;
   var running = false;
   var busy = false;         // 消除/洗牌动画期间锁定输入
   var gen = 0;              // 局号：restart 后作废旧局的延时回调
   var cellW = 0, cellH = 0;
+
+  /* ---------------- 模式（无尽 / 限时）与计时状态 ---------------- */
+  var MODE_KEY = 'linkup3d.mode';
+  var mode = TM.MODES.endless;
+  try {
+    mode = TM.normalizeMode(localStorage.getItem(MODE_KEY));
+  } catch (e) { mode = TM.MODES.endless; }
+
+  var tState = TM.create(mode);   // timer.js 纯函数状态
+  var paused = false;
+
+  function nowMs() {
+    return (window.performance && window.performance.now)
+      ? window.performance.now() : Date.now();
+  }
 
   var REMOVE_MS = 560;
   var SHUFFLE_MS = 900;
@@ -309,7 +349,7 @@
 
   /* ---------------- 交互 ---------------- */
   function onTileClick(r, c) {
-    if (busy || !running || !grid[r][c]) return;
+    if (busy || paused || !running || !grid[r][c]) return;
     startTimerIfNeeded();
 
     if (selected && selected.r === r && selected.c === c) {
@@ -461,13 +501,99 @@
     return (m < 10 ? '0' : '') + m + ':' + (ss < 10 ? '0' : '') + ss;
   }
 
-  function startTimerIfNeeded() {
-    if (timerId || !running) return;
-    timerId = setInterval(function () {
-      seconds++;
-      timeEl.textContent = fmt(seconds);
-    }, 1000);
+  /* ---------------- 计时驱动 ----------------
+   * tState 为 js/timer.js 的纯函数状态；本层只负责：
+   *   - 单调时钟读数（nowMs）喂给 tick
+   *   - 将 elapsed/remaining 渲染到 HUD（无尽=正计时，限时=倒计时）
+   *   - ≤10s 警示态（红色脉动 + 每秒滴答音）与归零判负
+   */
+  function timeLabel() {
+    if (mode === TM.MODES.timed) {
+      return tState.running
+        ? fmt(tState.remainingSec)
+        : fmt(TM.LIMIT_SECONDS);
+    }
+    return fmt(tState.elapsedSec);
   }
+
+  function renderTime() {
+    timeEl.textContent = timeLabel();
+    statTime.classList.toggle('warning', mode === TM.MODES.timed &&
+      !paused && tState.running && tState.warning);
+  }
+
+  function startTimerIfNeeded() {
+    if (!running || paused || tState.running) return;
+    tState = TM.start(tState, nowMs());
+    if (!timerId) {
+      timerId = setInterval(onTimerTick, 250);
+    }
+  }
+
+  function onTimerTick() {
+    if (!running || paused || !tState.running) return;
+    var prevSec = tState.remainingSec;
+    tState = TM.tick(tState, nowMs());
+    if (mode === TM.MODES.timed) {
+      // 警示区间：每秒一次滴答（暂停/未起跑不响）
+      if (tState.running && !tState.paused && tState.warning &&
+          tState.remainingSec !== prevSec && tState.remainingSec > 0) {
+        SFX.tick(tState.remainingSec <= 5);
+      }
+      if (tState.finished) {
+        lose();
+        return;
+      }
+    }
+    renderTime();
+  }
+
+  function stopTimer() {
+    clearInterval(timerId);
+    timerId = null;
+  }
+
+  /* ---------------- 暂停 / 继续 ----------------
+   * HUD「暂停」按钮与空格键触发；冻结计时、遮住棋盘（防暂停偷看）、
+   * 暂停期间一切输入锁定（牌面、难度、模式、重开在面板内仍可用）。
+   */
+  function togglePause() {
+    if (!running || paused) {
+      if (paused) resumeGame();
+      return;
+    }
+    paused = true;
+    tState = TM.pause(tState, nowMs());
+    board.classList.add('paused');
+    pauseScreen.classList.add('show');
+    pauseBtn.textContent = '▶';
+    pauseBtn.setAttribute('aria-pressed', 'true');
+    renderTime();
+  }
+
+  function resumeGame() {
+    if (!paused) return;
+    paused = false;
+    tState = TM.resume(tState, nowMs());
+    board.classList.remove('paused');
+    pauseScreen.classList.remove('show');
+    pauseBtn.textContent = '⏸';
+    pauseBtn.setAttribute('aria-pressed', 'false');
+    renderTime();
+  }
+
+  pauseBtn.addEventListener('click', togglePause);
+  document.getElementById('resume').addEventListener('click', resumeGame);
+
+  window.addEventListener('keydown', function (ev) {
+    var t = ev.target;
+    if (t && (t.tagName === 'BUTTON' || t.tagName === 'INPUT' ||
+              t.tagName === 'SELECT' || t.tagName === 'TEXTAREA')) return;
+    if (ev.code === 'Space' || ev.key === ' ') {
+      ev.preventDefault();
+      togglePause();
+    }
+  });
 
   var toastTimer = null;
   function showToast(msg) {
@@ -477,25 +603,52 @@
     toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 1600);
   }
 
+  function showResult(title, note) {
+    finalTitleEl.textContent = title;
+    finalScoreEl.textContent = score;
+    finalTimeEl.textContent = note;
+    setTimeout(function () { overlay.classList.add('show'); }, 700);
+  }
+
   function win() {
     running = false;
     SFX.win();
-    clearInterval(timerId);
-    timerId = null;
+    stopTimer();
     board.classList.add('won');
-    finalScoreEl.textContent = score;
-    finalTimeEl.textContent = '用时 ' + fmt(seconds);
-    setTimeout(function () { overlay.classList.add('show'); }, 700);
+    showResult('恭喜通关', '用时 ' + fmt(tState.elapsedSec));
+  }
+
+  /* 限时模式倒计时归零：本局判负，弹出结算面板（得分保留展示） */
+  function lose() {
+    running = false;
+    stopTimer();
+    SFX.lose();
+    statTime.classList.remove('warning');
+    timeEl.textContent = fmt(0);
+    if (paused) {
+      paused = false;
+      board.classList.remove('paused');
+      pauseScreen.classList.remove('show');
+      pauseBtn.textContent = '⏸';
+      pauseBtn.setAttribute('aria-pressed', 'false');
+    }
+    showResult('时间到', '得分 ' + score + ' · 剩余 ' +
+      (L.countTiles(grid) / 2) + ' 对');
   }
 
   function restart() {
     gen++;
-    clearInterval(timerId);
-    timerId = null;
-    score = 0; combo = 0; seconds = 0; lastMatchAt = 0;
+    stopTimer();
+    score = 0; combo = 0; lastMatchAt = 0;
+    tState = TM.create(mode);
+    paused = false;
     bestStat.classList.remove('record');
     selected = null; busy = false; running = true;
-    timeEl.textContent = '00:00';
+    board.classList.remove('paused');
+    pauseScreen.classList.remove('show');
+    pauseBtn.textContent = '⏸';
+    pauseBtn.setAttribute('aria-pressed', 'false');
+    renderTime();
     overlay.classList.remove('show');
     board.classList.remove('won');
     refreshBest();
@@ -530,6 +683,35 @@
   });
 
   renderDifficulty();
+
+  /* ---------------- 模式切换（无尽 / 限时） ----------------
+   * 切换即开新局（简单取舍：不做跨局保时，见 PR 说明）；
+   * 偏好持久化到 linkup3d.mode，重开页面自动恢复。 */
+  var modeBtns = Array.prototype.slice.call(
+    document.querySelectorAll('#mode .mode-btn'));
+
+  function renderMode() {
+    modeBtns.forEach(function (btn) {
+      var active = btn.dataset.mode === mode;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    document.getElementById('timeLabel').textContent =
+      mode === TM.MODES.timed ? '倒计时' : '用时';
+  }
+
+  modeBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var next = TM.normalizeMode(btn.dataset.mode);
+      if (next === mode) return;
+      mode = next;
+      try { localStorage.setItem(MODE_KEY, mode); } catch (e) { /* 忽略 */ }
+      renderMode();
+      restart();
+    });
+  });
+
+  renderMode();
   restart();
 
   /* ---------------- 动态星空背景 ---------------- */

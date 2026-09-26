@@ -118,6 +118,82 @@ button#music.on {
   border-color: rgba(125, 255, 176, .55);
   text-shadow: 0 0 12px rgba(125, 255, 176, .8);
 }
+button#pause {
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(122, 162, 255, .22);
+  background: rgba(23, 33, 66, .75);
+  color: #dfe8ff;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+  transition: transform .15s, filter .15s;
+}
+button#pause:hover { transform: translateY(-2px); filter: brightness(1.2); }
+button#pause:active { transform: translateY(1px); }
+button#pause[aria-pressed="true"] {
+  color: #ffd166;
+  border-color: rgba(255, 209, 102, .55);
+  text-shadow: 0 0 12px rgba(255, 209, 102, .7);
+}
+
+/* ---------------- 倒计时警示态（限时模式 ≤10s） ---------------- */
+#statTime.warning .value {
+  color: #ff5d5d;
+  text-shadow: 0 0 14px rgba(255, 93, 93, .85);
+  animation: time-pulse 1s ease-in-out infinite;
+}
+#statTime.warning .label { color: #ff8f8f; }
+@keyframes time-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+
+/* ---------------- 暂停遮罩 ---------------- */
+#board.paused .tile-slot { filter: blur(10px); pointer-events: none; }
+#board.paused { transition: filter .25s; }
+#pauseScreen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 8, 18, .55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s;
+  z-index: 19;
+}
+#pauseScreen.show { opacity: 1; pointer-events: auto; }
+.pause-card {
+  background: linear-gradient(165deg, #223058, #131c3a);
+  border: 1px solid rgba(122, 162, 255, .4);
+  border-radius: 20px;
+  padding: 32px 46px;
+  text-align: center;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .6), 0 0 60px rgba(70, 130, 255, .18);
+}
+.pause-card h2 { margin: 0 0 6px; font-size: 26px; letter-spacing: 8px; color: #ffd166;
+                 text-shadow: 0 0 22px rgba(255, 209, 102, .5); }
+.pause-card p { margin: 4px 0 18px; color: #aebfe8; font-size: 14px; }
+#resume {
+  font: inherit;
+  font-size: 15px;
+  letter-spacing: 4px;
+  padding: 10px 26px;
+  border-radius: 12px;
+  border: 1px solid rgba(122, 182, 255, .5);
+  background: linear-gradient(180deg, #3b6fd4, #274da0);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(48, 100, 220, .35);
+  transition: transform .15s, filter .15s;
+}
+#resume:hover { transform: translateY(-2px); filter: brightness(1.12); }
 
 /* ---------------- 难度选择 ---------------- */
 .difficulty {
@@ -127,6 +203,34 @@ button#music.on {
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+}
+/* 模式切换（无尽/限时）：与难度组同款分段控件 */
+.mode {
+  display: flex;
+  background: rgba(23, 33, 66, .75);
+  border: 1px solid rgba(122, 162, 255, .22);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+}
+.mode-btn {
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 1px;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  color: #8ea3d6;
+  cursor: pointer;
+  transition: background .2s, color .2s;
+  white-space: nowrap;
+}
+.mode-btn + .mode-btn { border-left: 1px solid rgba(122, 162, 255, .22); }
+.mode-btn:hover { color: #eaf1ff; background: rgba(59, 111, 212, .25); }
+.mode-btn.active {
+  background: linear-gradient(180deg, #d4803b, #a06127);
+  color: #fff;
+  box-shadow: inset 0 0 12px rgba(255, 180, 120, .35);
 }
 .diff-btn {
   font: inherit;
@@ -355,5 +459,6 @@ button#music.on {
   .panel { padding: 26px 30px; }
   .hud { gap: 6px; }
   .diff-btn { font-size: 11px; padding: 8px 9px; letter-spacing: 0; }
+  .mode-btn { font-size: 11px; padding: 8px 10px; letter-spacing: 0; }
   button#restart { font-size: 13px; padding: 8px 16px; letter-spacing: 2px; }
 }
