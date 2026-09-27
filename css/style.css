@@ -1234,6 +1234,38 @@ button#campaign[aria-pressed="true"] {
 }
 .tile-slot.tile-frozen .tile { cursor: default; }
 
+/* ---- 裂纹态（issue #49 冰封 HP=2）：hp=1 时冰壳开裂，仍不可选不可连 ----
+   覆盖层走 slot ::before（预警圈 ::before 只出现在未冻结格，二者互斥无冲突） */
+.tile-slot.tile-frozen.cracked::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--tile-w, 64px);
+  height: var(--tile-h, 80px);
+  border-radius: 10px;
+  transform: translateZ(calc(var(--depth) / 2 + 2px));
+  pointer-events: none;
+  background:
+    linear-gradient(58deg, transparent 43.6%, rgba(255, 255, 255, .95) 44%, rgba(255, 255, 255, .95) 45.2%, transparent 45.6%),
+    linear-gradient(-24deg, transparent 60.6%, rgba(230, 248, 255, .85) 61%, rgba(230, 248, 255, .85) 62%, transparent 62.4%),
+    linear-gradient(100deg, transparent 26.6%, rgba(255, 255, 255, .8) 27%, rgba(255, 255, 255, .8) 27.8%, transparent 28.2%),
+    linear-gradient(-70deg, transparent 72.6%, rgba(210, 240, 255, .75) 73%, rgba(210, 240, 255, .75) 73.8%, transparent 74.2%),
+    linear-gradient(135deg,
+      rgba(150, 205, 235, .5) 0%, rgba(95, 165, 215, .3) 38%,
+      rgba(150, 205, 235, .38) 55%, rgba(90, 155, 205, .28) 100%);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .5), inset 0 0 14px rgba(140, 190, 225, .6);
+}
+/* 裂冰瞬间：短促震颤（区别于解冻碎冰爆开） */
+.tile-slot.tile-cracking .tile-spin { animation: crackshake 0.4s ease-out; }
+@keyframes crackshake {
+  0%   { transform: translateX(0) rotate(0deg); }
+  25%  { transform: translateX(-3px) rotate(-1.4deg); }
+  50%  { transform: translateX(3px) rotate(1.4deg); }
+  75%  { transform: translateX(-2px) rotate(-0.8deg); }
+  100% { transform: translateX(0) rotate(0deg); }
+}
+
 .tile-slot.tile-frost-warn .face.front {     /* 预警红晕脉冲 */
   animation: frostwarn 1s ease-in-out infinite;
 }
@@ -1387,6 +1419,8 @@ body.combo-active #stage {
   }
   .tile-slot.tile-frozen { animation: none; }
   .tile-slot.tile-thawing::before { animation: none; opacity: 0; }
+  /* issue #49：裂纹覆盖层为静态纹理保留，震颤动画关停 */
+  .tile-slot.tile-cracking .tile-spin { animation: none; }
   body.combo-active #stage { animation: none; }
   .final-stars .fstar.lit { animation: none; }
   .tile-slot.tile-frozen::after {

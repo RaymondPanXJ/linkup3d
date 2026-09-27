@@ -27,6 +27,8 @@
   var KINDS = {
     freeze: { count: 26, speed: [40, 170],  life: [0.35, 0.70], size: [1.5, 3.5],
               gravity: 300, colors: ['#bfeaff', '#8ed7ff', '#ffffff'] },
+    crack:  { count: 18, speed: [40, 150],  life: [0.30, 0.60], size: [1.5, 3.0],
+              gravity: 380, colors: ['#eafaff', '#a9e4ff', '#ffffff'] },
     thaw:   { count: 44, speed: [70, 250],  life: [0.40, 0.90], size: [2.0, 5.0],
               gravity: 430, colors: ['#d2f5ff', '#9adcff', '#7ec8ff'] },
     star:   { count: 30, speed: [30, 150],  life: [0.50, 1.10], size: [1.5, 4.0],

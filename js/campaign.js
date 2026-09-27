@@ -207,6 +207,8 @@
 
   /* ---------------- 星级 ---------------- */
   // ≤par = 3 星；≤par×1.5 = 2 星；其余已通关 = 1 星；未通关（≤0）= 0 星
+  // issue #49 复核：冰封 HP=2 加强后重跑 T6 仿真，10 关 10/10 通关 0 死局，贪心均值
+  // 仍处 par/3 量级（最紧 L0 12s vs par 35s；L5/L9 36s vs par 120s/205s），par 全部维持原值。
   function starsFor(parSec, timeUsed) {
     if (!isPosInt(parSec)) throw new Error('parSec 必须为正整数: ' + parSec);
     if (typeof timeUsed !== 'number' || !isFinite(timeUsed) || timeUsed <= 0) return 0;

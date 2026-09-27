@@ -260,6 +260,13 @@
           src.start(t);
         });
       },
+      // 裂冰（issue #49 HP=2）：冰壳裂纹的短促嘎吱声（低于解冻琶音）
+      crack: function () {
+        play(function (c, t) {
+          tone(880, t, 0.06, 'triangle', 0.08, 620);
+          tone(660, t + 0.04, 0.08, 'sine', 0.07);
+        });
+      },
       // 解冻：明亮三连琶音
       thaw: function () {
         play(function (c, t) {
@@ -632,16 +639,17 @@
         clearWarn(b.r, b.c);
       }
     }
-    // 消除联动（规则2）：解冻被消两牌的正交邻冻结格，解冻瞬间播放碎裂动画
-    var thawed = FRZ.frozenList(frostState);
-    var thawKeys = thawed.filter(function (p) {
-      return Math.abs(p.r - a.r) + Math.abs(p.c - a.c) === 1 ||
-             Math.abs(p.r - b.r) + Math.abs(p.c - b.c) === 1;
-    });
-    if (thawKeys.length) {
-      frostState = FRZ.thawAround(frostState, a.r, a.c, b.r, b.c);
+    // 消除联动（规则2，issue #49 HP=2）：被消两牌的正交邻冰冻格各裂冰一次（hp-1）；
+    // 裂纹态（hp=1）仍不可选不可连，破裂（hp=0）才播放解冻碎裂动画
+    var crackRes = FRZ.crackAround(frostState, a.r, a.c, b.r, b.c);
+    frostState = crackRes.state;
+    if (crackRes.broken.length) {
       SFX.thaw();
-      thawKeys.forEach(function (p) { playThaw(p.r, p.c); fxBurst(p.r, p.c, 'thaw'); });
+      crackRes.broken.forEach(function (p) { playThaw(p.r, p.c); fxBurst(p.r, p.c, 'thaw'); });
+    }
+    if (crackRes.cracked.length) {
+      SFX.crack();
+      crackRes.cracked.forEach(function (p) { playCrack(p.r, p.c); fxBurst(p.r, p.c, 'crack'); });
     }
 
     var now = Date.now();
@@ -716,6 +724,7 @@
     Object.keys(slots).forEach(function (k) {
       slots[k].classList.remove('tile-frozen');
       slots[k].classList.remove('tile-frost-warn');
+      slots[k].classList.remove('cracked');
     });
     lastWarnSoundAt = 0;
     showToast('搅动星尘,寒冰消融');
@@ -995,10 +1004,22 @@
     var s = slots[r + ',' + c];
     if (!s) return;
     s.classList.remove('tile-thawing');
+    s.classList.remove('cracked'); // 破裂即清裂纹覆盖层，不等下个心跳同步
     void s.offsetWidth; // 重置动画
     s.classList.add('tile-thawing');
     var myGen = gen;
     setTimeout(function () { if (myGen === gen) s.classList.remove('tile-thawing'); }, 640);
+  }
+
+  // 裂冰瞬间抖动（issue #49）：裂纹态落定时短促震颤，与解冻碎裂动画区分
+  function playCrack(r, c) {
+    var s = slots[r + ',' + c];
+    if (!s) return;
+    s.classList.remove('tile-cracking');
+    void s.offsetWidth; // 重置动画
+    s.classList.add('tile-cracking');
+    var myGen = gen;
+    setTimeout(function () { if (myGen === gen) s.classList.remove('tile-cracking'); }, 420);
   }
 
   // 预警红晕：仍在预警期，或期满但敌人本周期目标仍是该格（等下一 tick 发 freeze，避免闪烁）
@@ -1010,11 +1031,13 @@
   }
 
   function syncFrostVisuals(now) {
-    var frozen = {};
+    var frozen = {}, cracked = {};
     FRZ.frozenList(frostState).forEach(function (p) { frozen[p.r + ',' + p.c] = true; });
+    FRZ.crackedList(frostState).forEach(function (p) { cracked[p.r + ',' + p.c] = true; });
     Object.keys(slots).forEach(function (k) {
       var s = slots[k];
       s.classList.toggle('tile-frozen', !!frozen[k]);
+      s.classList.toggle('cracked', !!cracked[k]); // 裂纹态覆盖层（issue #49）
       var warn = warnActive(k, now);
       if (!warn) s.classList.remove('tile-frost-warn');
       else if (frozen[k] !== true) s.classList.add('tile-frost-warn');

@@ -1,9 +1,12 @@
 /**
  * frost.js — 冻冰状态层纯函数模块（无 DOM / 无存储 / 无内部定时器）
  *
- * 规则（对应 issue #27，TechLead 定稿，不得偏离）：
+ * 规则（issue #27 定稿 + issue #49 HP=2 加强，TechLead 裁决）：
  *   1. 冰冻牌不可被选中、不可作为连通端点（canSelect / canMatch），图案仍可见（覆冰外观由 T4 渲染）；
- *   2. 任意一次成功消除后，解冻与被消两牌正交相邻（四邻，不含对角）的冰冻格（thawAround）；
+ *      hp>0（含裂纹态 hp=1）一律拒绝；
+ *   2. 冰封 HP=2（issue #49）：freeze 落位 hp=FREEZE_HP；被消两牌每格正交邻（四邻，不含对角）
+ *      的冰冻格经一次邻近消除 hp-1（crackAround / crack）。hp=1 为裂纹态（仍不可选不可连），
+ *      hp=0 解冻移除。即一块冰需要两次邻近消除才能打碎；
  *   3. 冻结动作必须有预警期：telegraph 登记预警，预警期满（由调用方注入 now 判断，
  *      本模块不做任何定时器）后 freeze 才生效；
  *   4. 同屏冰冻上限 4（MAX_FROZEN），达到上限后新的冻结动作直接跳过（applied=false）；
@@ -11,8 +14,12 @@
  *      "盘面是否仍可解"，不可解则调用方回滚（冻结不生效）。本模块只提供判定接口，
  *      不做洗牌（洗牌是既有 link3d.js 逻辑）。
  *
+ * 返回值契约（issue #49 验收）：修改型 API 一律返回新状态、绝不改动入参。
+ *   freeze/crack 返回 freeze 同款信封 {state, ...}；telegraph/thaw 类批量入口
+ *   （telegraph / crackAround）返回裸新状态或 {state, cracked, broken} 信封，见各函数注释。
+ *
  * 状态结构（纯数据、可 JSON 序列化）：
- *   { frozen: { "r,c": { at: <冻结时刻，调用方注入> } },
+ *   { frozen: { "r,c": { at: <冻结时刻，调用方注入>, hp: <剩余冰层 1..FREEZE_HP> } },
  *     telegraphs: { "r,c": { until: <预警到期时刻，调用方注入> } } }
  * 坐标为游戏内 1-based 内容格坐标（与 campaign.js LEVELS.frost 一致，
  * 不含 link3d.js 扩展网格的外圈空边框）。
@@ -33,6 +40,7 @@
   'use strict';
 
   var MAX_FROZEN = 4; // 同屏冰冻上限（规则 4）
+  var FREEZE_HP = 2;  // 冰封血量（issue #49：两次邻近消除才能打碎）
 
   /* ---------------- 内部工具 ---------------- */
 
@@ -63,7 +71,11 @@
       Object.keys(src).forEach(function (k) {
         var e = src[k], p = parseKey(k);
         if (e && isCoord(p.r) && isCoord(p.c) && isTime(e.at)) {
-          out.frozen[k] = { at: e.at };
+          // hp 兼容：旧存档无 hp 字段视为满血（issue #49 兼容要求）；越界值归一
+          var hp = typeof e.hp === 'number' && isFinite(e.hp) ?
+            Math.min(FREEZE_HP, Math.floor(e.hp)) : FREEZE_HP;
+          if (hp <= 0) return; // hp<=0 即已解冻，视为无效条目丢弃
+          out.frozen[k] = { at: e.at, hp: hp };
         }
       });
     }
@@ -82,7 +94,7 @@
   function clone(s) {
     var n = { frozen: {}, telegraphs: {} };
     Object.keys(s.frozen).forEach(function (k) {
-      n.frozen[k] = { at: s.frozen[k].at };
+      n.frozen[k] = { at: s.frozen[k].at, hp: s.frozen[k].hp };
     });
     Object.keys(s.telegraphs).forEach(function (k) {
       n.telegraphs[k] = { until: s.telegraphs[k].until };
@@ -102,7 +114,7 @@
     return { frozen: {}, telegraphs: {} };
   }
 
-  // 规则 1：冰冻格不可选中
+  // 规则 1：冰冻格不可选中（hp>0 一律拒绝，含裂纹态 hp=1；normalize 保证条目 hp 恒 >0）
   function canSelect(state, r, c) {
     var s = normalize(state);
     return !Object.prototype.hasOwnProperty.call(s.frozen, key(r, c));
@@ -132,6 +144,7 @@
   }
 
   // 冻结：预警期满才生效；同屏上限 4；重复冻结拒绝。applied=false 时状态原样返回。
+  // 落位血量 hp=FREEZE_HP（issue #49）。返回值契约：freeze 信封 {state, applied}。
   function freeze(state, r, c, now) {
     var s = normalize(state);
     var k = key(r, c);
@@ -141,18 +154,51 @@
       Object.prototype.hasOwnProperty.call(s.telegraphs, k) &&
       now >= s.telegraphs[k].until;
     if (!ok) return { state: s, applied: false };
-    s.frozen[k] = { at: now };
+    s.frozen[k] = { at: now, hp: FREEZE_HP };
     delete s.telegraphs[k];
     return { state: s, applied: true };
   }
 
-  // 规则 2：成功消除后，解冻被消两牌的正交四邻冰冻格（仅已冻结格；预警登记不受影响）
-  function thawAround(state, r1, c1, r2, c2) {
+  // 规则 2（issue #49 HP=2 版）：单格裂冰，hp-1。hp=2 → hp=1（裂纹态）；hp=1 → 解冻移除。
+  // 返回值契约（与 freeze 同为信封式）：
+  //   { state: <新状态>, cracked: <本次进入裂纹态>, broken: <本次解冻移除> }
+  // 未冻结格：state 归一后原样返回，cracked/broken 均 false。入参不被修改。
+  function crack(state, r, c) {
     var s = clone(normalize(state));
-    orthogonalKeys(r1, c1).concat(orthogonalKeys(r2, c2)).forEach(function (k) {
+    var k = key(r, c);
+    var e = s.frozen[k];
+    if (!e) return { state: s, cracked: false, broken: false };
+    e.hp -= 1;
+    if (e.hp <= 0) {
       delete s.frozen[k];
+      return { state: s, cracked: false, broken: true };
+    }
+    return { state: s, cracked: true, broken: false };
+  }
+
+  // 规则 2：成功消除后，对被消两牌的正交四邻（不含对角）冰冻格各裂冰一次（hp-1）。
+  // 同格同时邻接两消牌时只裂一次（与旧 thawAround 的单次语义对齐：一次消除 = 一次裂冰）。
+  // 返回值契约：{ state: <新状态>, cracked: [裂纹格 {r,c}], broken: [解冻格 {r,c}] }，供渲染/音效。
+  function crackAround(state, r1, c1, r2, c2) {
+    var s = clone(normalize(state));
+    var cracked = [], broken = [];
+    var seen = {};
+    orthogonalKeys(r1, c1).concat(orthogonalKeys(r2, c2)).forEach(function (k) {
+      if (seen[k] || !Object.prototype.hasOwnProperty.call(s.frozen, k)) return;
+      seen[k] = true;
+      var p = parseKey(k);
+      var out = crack(s, p.r, p.c);
+      s = out.state;
+      if (out.cracked) cracked.push(p);
+      else if (out.broken) broken.push(p);
     });
-    return s;
+    return { state: s, cracked: cracked, broken: broken };
+  }
+
+  // 兼容保留（issue #31 接线口径名）：语义 = crackAround 的 state 分量。
+  // 注意 HP=2 后此函数不再保证「一次消除即解冻」，仅作四邻裂冰后的状态投影。
+  function thawAround(state, r1, c1, r2, c2) {
+    return crackAround(state, r1, c1, r2, c2).state;
   }
 
   function countFrozen(state) {
@@ -164,8 +210,13 @@
     var s = normalize(state);
     return Object.keys(s.frozen).map(function (k) {
       var p = parseKey(k);
-      return { r: p.r, c: p.c, at: s.frozen[k].at };
+      return { r: p.r, c: p.c, at: s.frozen[k].at, hp: s.frozen[k].hp };
     }).sort(function (a, b) { return a.at - b.at; });
+  }
+
+  // 裂纹态（hp < FREEZE_HP）列表，供渲染 .tile-frozen.cracked（issue #49）
+  function crackedList(state) {
+    return frozenList(state).filter(function (e) { return e.hp < FREEZE_HP; });
   }
 
   function snapshot(state) {
@@ -245,15 +296,19 @@
 
   return {
     MAX_FROZEN: MAX_FROZEN,
+    FREEZE_HP: FREEZE_HP,
     create: create,
     canSelect: canSelect,
     canMatch: canMatch,
     telegraph: telegraph,
     isTelegraphActive: isTelegraphActive,
     freeze: freeze,
+    crack: crack,
+    crackAround: crackAround,
     thawAround: thawAround,
     countFrozen: countFrozen,
     frozenList: frozenList,
+    crackedList: crackedList,
     snapshot: snapshot,
     restore: restore,
     isBoardSolvable: isBoardSolvable
