@@ -82,6 +82,7 @@
   function createPlayer() {
     var ctx = null, master = null, noiseBuf = null;
     var timer = null, startTime = 0, nextBar = 0, running = false;
+    var starting = null, stopDuringStart = false;
     var MASTER_GAIN = 0.22;
 
     function ensure() {
@@ -96,8 +97,23 @@
         var d = noiseBuf.getChannelData(0);
         for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
       }
-      if (ctx.state === 'suspended' && ctx.resume) { try { ctx.resume(); } catch (e) { /* 忽略 */ } }
       return true;
+    }
+
+    // resume 是异步的（返回 Promise）：fire-and-forget + 同步检查 state 会永远读到
+    // 'suspended'（issue #45 根因1）。统一经 promise 收敛，所有分支都 settle，绝不抛错。
+    function resumed() {
+      if (!ctx) return Promise.resolve(false);
+      if (ctx.state === 'running') return Promise.resolve(true);
+      if (!ctx.resume) return Promise.resolve(false);
+      try {
+        var p = ctx.resume();
+        if (!p || typeof p.then !== 'function') {
+          return Promise.resolve(ctx.state === 'running');
+        }
+        return p.then(function () { return ctx.state === 'running'; },
+                      function () { return false; });
+      } catch (e) { return Promise.resolve(false); }
     }
 
     function voice(e, t) {
@@ -150,19 +166,39 @@
 
     return {
       isRunning: function () { return running; },
+      // 只读诊断（issue #45：供 window.__audioDiag 远程验证，不影响播放逻辑）
+      diag: function () {
+        return { running: running, ctxState: ctx ? ctx.state : 'none',
+                 currentTime: ctx ? ctx.currentTime : null };
+      },
+      // 返回 Promise<boolean>：是否真正进入播放。启动可能需等待 ctx.resume() 异步完成，
+      // 调用方（game.js）在决议前不得据此判定失败并重试第二次启动（issue #45 根因1）。
       start: function () {
-        if (running || !ensure()) return;
-        // 尚处 autoplay 限制（ctx suspended）时不启动，等下一次用户手势重试
-        if (ctx.state !== 'running') return;
-        running = true;
-        master.gain.cancelScheduledValues(ctx.currentTime);
-        master.gain.setValueAtTime(MASTER_GAIN, ctx.currentTime);
-        startTime = ctx.currentTime + 0.06;
-        nextBar = 0;
-        tick();
-        timer = setInterval(tick, 60);
+        if (running) return Promise.resolve(true);
+        if (!ensure()) return Promise.resolve(false);
+        // 重新开启视为撤回在途启动上的 stop 取消标记（♪ 快速 off→on 场景）
+        stopDuringStart = false;
+        // 同一播放器同一时刻至多一个在途启动：并发调用共享同一 promise，
+        // 防止两个调度器用不同 startTime 竞争排期同一主增益（issue #45 验收4）。
+        if (starting) return starting;
+        starting = resumed().then(function (ok) {
+          starting = null;
+          if (stopDuringStart) { stopDuringStart = false; return false; }
+          if (!ok || running) return running;
+          running = true;
+          master.gain.cancelScheduledValues(ctx.currentTime);
+          master.gain.setValueAtTime(MASTER_GAIN, ctx.currentTime);
+          startTime = ctx.currentTime + 0.06;
+          nextBar = 0;
+          tick();
+          timer = setInterval(tick, 60);
+          return true;
+        });
+        return starting;
       },
       stop: function () {
+        // 在途启动期间也允许关闭：置取消标记，启动决议时不再进入播放（issue #45 验收6）。
+        if (starting) { stopDuringStart = true; return; }
         if (!running) return;
         running = false;
         clearInterval(timer);
