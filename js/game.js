@@ -319,13 +319,27 @@
   musicBtn.addEventListener('click', function () {
     musicOn = !musicOn;
     try { localStorage.setItem(MUSIC_KEY, musicOn ? '1' : '0'); } catch (e) { /* 忽略 */ }
-    if (musicOn) ensureMusicStarted(); else musicPlayer.stop();
+    if (musicOn) {
+      // issue #47 追加：关 ♪ 时 onFirstGesture 的 !musicOn 分支已移除监听——
+      // 切回必须重新武装，否则重试安全网永久失效（start 复用 #45 异步安全路径）。
+      addMusicGestureListeners();
+      ensureMusicStarted();
+    } else {
+      musicPlayer.stop();
+    }
     renderMusicBtn();
   });
 
   var gestureEvents = ['pointerdown', 'touchstart', 'keydown'];
   var musicRetryEvents = gestureEvents.concat('click');
-  var musicGestureActive = true;
+  var musicGestureActive = false;
+  function addMusicGestureListeners() {
+    if (musicGestureActive) return;
+    musicGestureActive = true;
+    musicRetryEvents.forEach(function (ev) {
+      window.addEventListener(ev, onFirstGesture, { passive: true });
+    });
+  }
   function removeMusicGestureListeners() {
     musicGestureActive = false;
     musicRetryEvents.forEach(function (ev) {
@@ -337,12 +351,15 @@
     // start() 可能仍在等 resume 决议；isRunning() 未置真前保留监听，下次手势继续重试。
     if (musicPlayer.isRunning() || !musicOn) removeMusicGestureListeners();
   }
-  musicRetryEvents.forEach(function (ev) {
-    window.addEventListener(ev, onFirstGesture, { passive: true });
-  });
+  addMusicGestureListeners();
 
   renderMusicBtn();
-  if (musicOn) ensureMusicStarted(); // 支持自动播放的浏览器无需等待手势
+  // issue #47：开机无手势时不得启动——无激活上下文里 new AudioContext() 创建即挂起
+  // 并触发浏览器告警。仅当已有激活（如 bfcache 恢复后仍保持激活）才立即启动，
+  // 否则交给上方手势持续重试监听，ensure() 首次创建将发生在手势内，告警根除。
+  if (musicOn && navigator.userActivation && navigator.userActivation.isActive === true) {
+    ensureMusicStarted();
+  }
 
   /* ---------------- 状态 ---------------- */
   var grid = null;          // link3d 扩展网格（0 为边框）
@@ -1496,6 +1513,7 @@
   window.__audioDiag = function () {
     var s = SFX.diag(), m = musicPlayer.diag();
     return {
+      userActive: navigator.userActivation ? navigator.userActivation.hasBeenActive : null,
       sfx: { ctxState: s.ctxState, currentTime: s.currentTime },
       music: { running: m.running, ctxState: m.ctxState, currentTime: m.currentTime,
                musicOn: musicOn, listenersActive: musicGestureActive }

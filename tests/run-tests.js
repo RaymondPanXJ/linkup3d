@@ -26,6 +26,7 @@ var frostWiringChecks = require('./frost-wiring-static-check.js');
 var starmapChecks = require('./starmap-static-check.js');
 var fxChecks = require('./fx-static-check.js');
 var bgmRaceChecks = require('./bgm-race-check.js');
+var audioGestureChecks = require('./audio-gesture-static-check.js');
 var simulationTests = require('./level-simulation.define.js');
 
 var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
@@ -51,7 +52,11 @@ function report(all) {
   process.exit(pass === all.length ? 0 : 1);
 }
 
-// bgm-race-check 含异步仿真（Promise 决议），等其完成后再并入汇总输出（issue #45）
-Promise.resolve(bgmRaceChecks.runChecks()).then(function (asyncResults) {
-  report(results.concat(asyncResults));
+// bgm-race-check / audio-gesture-static-check 含异步仿真（Promise 决议），
+// 等其完成后再并入汇总输出（issue #45 / #47）
+Promise.all([
+  Promise.resolve(bgmRaceChecks.runChecks()),
+  Promise.resolve(audioGestureChecks.runChecks())
+]).then(function (asyncGroups) {
+  report(results.concat(asyncGroups[0], asyncGroups[1]));
 });
