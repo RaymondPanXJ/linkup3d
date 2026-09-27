@@ -25,6 +25,7 @@ var enemyChecks = require('./enemy-static-check.js');
 var frostWiringChecks = require('./frost-wiring-static-check.js');
 var starmapChecks = require('./starmap-static-check.js');
 var fxChecks = require('./fx-static-check.js');
+var bgmRaceChecks = require('./bgm-race-check.js');
 var simulationTests = require('./level-simulation.define.js');
 
 var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
@@ -39,11 +40,18 @@ var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   simulationTests.runAll());
 var pass = 0;
 
-results.forEach(function (r) {
-  console.log((r.pass ? 'PASS' : 'FAIL') + '  ' + r.name + '  -> ' + r.detail);
-  if (r.pass) pass++;
-});
+function report(all) {
+  all.forEach(function (r) {
+    console.log((r.pass ? 'PASS' : 'FAIL') + '  ' + r.name + '  -> ' + r.detail);
+    if (r.pass) pass++;
+  });
 
-console.log('----------------------------------------');
-console.log(pass + '/' + results.length + ' passed');
-process.exit(pass === results.length ? 0 : 1);
+  console.log('----------------------------------------');
+  console.log(pass + '/' + all.length + ' passed');
+  process.exit(pass === all.length ? 0 : 1);
+}
+
+// bgm-race-check 含异步仿真（Promise 决议），等其完成后再并入汇总输出（issue #45）
+Promise.resolve(bgmRaceChecks.runChecks()).then(function (asyncResults) {
+  report(results.concat(asyncResults));
+});

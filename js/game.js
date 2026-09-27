@@ -274,6 +274,11 @@
         play(function (c, t) {
           tone(1760, t, 0.035, 'square', 0.05);
         });
+      },
+      // 只读诊断（issue #45：供 window.__audioDiag；不创建 ctx，避免非手势期实例化）
+      diag: function () {
+        return { ctxState: ctx ? ctx.state : 'none',
+                 currentTime: ctx ? ctx.currentTime : null };
       }
     };
   })();
@@ -303,8 +308,9 @@
     musicBtn.setAttribute('aria-label', musicOn ? '关闭背景音乐' : '开启背景音乐');
   }
 
-  // 浏览器自动播放策略：AudioContext 需在用户手势中才能恢复运行，
-  // 因此「首次交互」统一在这里触发启动（偏好为开时）。
+  // 浏览器自动播放策略：AudioContext 需在用户手势中才能恢复运行。
+  // issue #45 根因2：once 一次性监听错过首手势窗口后整会话不再重试——
+  // 改为持续监听，直到真正播放（isRunning）或偏好关闭（!musicOn）才解除。
   function ensureMusicStarted() {
     if (!musicOn || musicPlayer.isRunning()) return;
     musicPlayer.start();
@@ -318,14 +324,21 @@
   });
 
   var gestureEvents = ['pointerdown', 'touchstart', 'keydown'];
-  function onFirstGesture() {
-    ensureMusicStarted();
-    gestureEvents.forEach(function (ev) {
+  var musicRetryEvents = gestureEvents.concat('click');
+  var musicGestureActive = true;
+  function removeMusicGestureListeners() {
+    musicGestureActive = false;
+    musicRetryEvents.forEach(function (ev) {
       window.removeEventListener(ev, onFirstGesture);
     });
   }
-  gestureEvents.forEach(function (ev) {
-    window.addEventListener(ev, onFirstGesture, { once: true, passive: true });
+  function onFirstGesture() {
+    ensureMusicStarted();
+    // start() 可能仍在等 resume 决议；isRunning() 未置真前保留监听，下次手势继续重试。
+    if (musicPlayer.isRunning() || !musicOn) removeMusicGestureListeners();
+  }
+  musicRetryEvents.forEach(function (ev) {
+    window.addEventListener(ev, onFirstGesture, { passive: true });
   });
 
   renderMusicBtn();
@@ -1478,4 +1491,14 @@
 
   /* ---------------- 动态星空背景 ---------------- */
   window.Stars.mount(document.getElementById('starfield'));
+
+  /* ---------------- 音频自诊断钩子（issue #45，供 TechLead 真机插桩，只读） ---------------- */
+  window.__audioDiag = function () {
+    var s = SFX.diag(), m = musicPlayer.diag();
+    return {
+      sfx: { ctxState: s.ctxState, currentTime: s.currentTime },
+      music: { running: m.running, ctxState: m.ctxState, currentTime: m.currentTime,
+               musicOn: musicOn, listenersActive: musicGestureActive }
+    };
+  };
 })();
