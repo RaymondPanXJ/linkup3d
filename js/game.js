@@ -260,6 +260,13 @@
           src.start(t);
         });
       },
+      // 裂冰（issue #49 HP=2）：冰壳裂纹的短促嘎吱声（低于解冻琶音）
+      crack: function () {
+        play(function (c, t) {
+          tone(880, t, 0.06, 'triangle', 0.08, 620);
+          tone(660, t + 0.04, 0.08, 'sine', 0.07);
+        });
+      },
       // 解冻：明亮三连琶音
       thaw: function () {
         play(function (c, t) {
@@ -632,17 +639,20 @@
         clearWarn(b.r, b.c);
       }
     }
-    // 消除联动（规则2）：解冻被消两牌的正交邻冻结格，解冻瞬间播放碎裂动画
-    var thawed = FRZ.frozenList(frostState);
-    var thawKeys = thawed.filter(function (p) {
-      return Math.abs(p.r - a.r) + Math.abs(p.c - a.c) === 1 ||
-             Math.abs(p.r - b.r) + Math.abs(p.c - b.c) === 1;
-    });
-    if (thawKeys.length) {
-      frostState = FRZ.thawAround(frostState, a.r, a.c, b.r, b.c);
+    // 消除联动（规则2，issue #49 HP=2）：被消两牌的正交邻冰冻格各裂冰一次（hp-1）；
+    // 裂纹态（hp=1）仍不可选不可连，破裂（hp=0）才播放解冻碎裂动画
+    var crackRes = FRZ.crackAround(frostState, a.r, a.c, b.r, b.c);
+    frostState = crackRes.state;
+    if (crackRes.broken.length) {
       SFX.thaw();
-      thawKeys.forEach(function (p) { playThaw(p.r, p.c); fxBurst(p.r, p.c, 'thaw'); });
+      crackRes.broken.forEach(function (p) { playThaw(p.r, p.c); fxBurst(p.r, p.c, 'thaw'); });
     }
+    if (crackRes.cracked.length) {
+      SFX.crack();
+      crackRes.cracked.forEach(function (p) { playCrack(p.r, p.c); fxBurst(p.r, p.c, 'crack'); });
+    }
+    // 缺陷1 返工（issue #51）：裂冰后立即同步视觉，不等 ≤250ms 心跳（即时反馈）
+    syncFrostVisuals(Date.now());
 
     var now = Date.now();
     var gap = lastMatchAt ? now - lastMatchAt : Infinity;
@@ -688,10 +698,38 @@
 
       if (L.countTiles(grid) === 0) {
         win();
-      } else if (!L.hasSolvablePair(grid)) {
+      } else if (!hasUnfrozenSolvablePair()) {
         announceShuffle();
       }
     }, REMOVE_MS);
+  }
+
+  /* 冰封感知死局判定（缺陷2 返工，issue #51）：存在「两端点均未冰封且路径可达」
+   * 的同值对才算有解。冰封格在 grid 上仍占位，findPath 天然将其视为路径障碍；
+   * 端点仅在未冰冻格中按值分组配对。无冰封时与 L.hasSolvablePair 等价（自由模式）。
+   * 旧判定 L.hasSolvablePair 无视冰封，会在冰封封锁路径时误判"有解"导致玩家软锁。 */
+  function hasUnfrozenSolvablePair() {
+    if (!FRZ.frozenList(frostState).length) return L.hasSolvablePair(grid);
+    var size = L.gridSize(grid);
+    var byValue = {};
+    for (var r = 1; r <= size.rows; r++) {
+      for (var c = 1; c <= size.cols; c++) {
+        var v = grid[r][c];
+        if (v > 0 && FRZ.canSelect(frostState, r, c)) {
+          (byValue[v] = byValue[v] || []).push({ r: r, c: c });
+        }
+      }
+    }
+    var values = Object.keys(byValue);
+    for (var i = 0; i < values.length; i++) {
+      var cells = byValue[values[i]];
+      for (var x = 0; x < cells.length; x++) {
+        for (var y = x + 1; y < cells.length; y++) {
+          if (L.findPath(grid, cells[x], cells[y])) return true;
+        }
+      }
+    }
+    return false;
   }
 
   /* 无可连对：先解释 ≥800ms 再洗牌，避免玩家对突然变化摸不着头脑（issue #16） */
@@ -716,6 +754,7 @@
     Object.keys(slots).forEach(function (k) {
       slots[k].classList.remove('tile-frozen');
       slots[k].classList.remove('tile-frost-warn');
+      slots[k].classList.remove('cracked');
     });
     lastWarnSoundAt = 0;
     showToast('搅动星尘,寒冰消融');
@@ -995,10 +1034,22 @@
     var s = slots[r + ',' + c];
     if (!s) return;
     s.classList.remove('tile-thawing');
+    s.classList.remove('cracked'); // 破裂即清裂纹覆盖层，不等下个心跳同步
     void s.offsetWidth; // 重置动画
     s.classList.add('tile-thawing');
     var myGen = gen;
     setTimeout(function () { if (myGen === gen) s.classList.remove('tile-thawing'); }, 640);
+  }
+
+  // 裂冰瞬间抖动（issue #49）：裂纹态落定时短促震颤，与解冻碎裂动画区分
+  function playCrack(r, c) {
+    var s = slots[r + ',' + c];
+    if (!s) return;
+    s.classList.remove('tile-cracking');
+    void s.offsetWidth; // 重置动画
+    s.classList.add('tile-cracking');
+    var myGen = gen;
+    setTimeout(function () { if (myGen === gen) s.classList.remove('tile-cracking'); }, 420);
   }
 
   // 预警红晕：仍在预警期，或期满但敌人本周期目标仍是该格（等下一 tick 发 freeze，避免闪烁）
@@ -1010,11 +1061,13 @@
   }
 
   function syncFrostVisuals(now) {
-    var frozen = {};
+    var frozen = {}, cracked = {};
     FRZ.frozenList(frostState).forEach(function (p) { frozen[p.r + ',' + p.c] = true; });
+    FRZ.crackedList(frostState).forEach(function (p) { cracked[p.r + ',' + p.c] = true; });
     Object.keys(slots).forEach(function (k) {
       var s = slots[k];
       s.classList.toggle('tile-frozen', !!frozen[k]);
+      s.classList.toggle('cracked', !!cracked[k]); // 裂纹态覆盖层（issue #49）
       var warn = warnActive(k, now);
       if (!warn) s.classList.remove('tile-frost-warn');
       else if (frozen[k] !== true) s.classList.add('tile-frost-warn');
@@ -1049,16 +1102,20 @@
   }
 
   function onHunterTick() {
-    if (!enemyState || !running || paused) return;
     var now = Date.now();
-    var res = ENM.tick(enemyState, now, hunterCtx());
-    enemyState = res.state;
-    res.events.forEach(function (ev) { handleEnemyEvent(ev, now); });
-    syncFrostVisuals(now);
-    if (ENM.isThreatening(enemyState, now) && now - lastWarnSoundAt >= 1000) {
-      lastWarnSoundAt = now;
-      SFX.warn();
+    // 缺陷1 返工（issue #51）：enemy tick 保持 enemyState 门控，
+    // syncFrostVisuals 移出门控始终执行——无巡猎者关卡（L2/L5 预冻关）
+    // enemyState=null 时裂纹态/冰封三态仍需心跳同步上屏。
+    if (enemyState && running && !paused) {
+      var res = ENM.tick(enemyState, now, hunterCtx());
+      enemyState = res.state;
+      res.events.forEach(function (ev) { handleEnemyEvent(ev, now); });
+      if (ENM.isThreatening(enemyState, now) && now - lastWarnSoundAt >= 1000) {
+        lastWarnSoundAt = now;
+        SFX.warn();
+      }
     }
+    syncFrostVisuals(now);
   }
 
   setInterval(onHunterTick, 250); // 沿用现有 setInterval 心跳模式（同 onTimerTick）

@@ -7,7 +7,8 @@
  * 仿真口径（与 js/game.js 实际接线逐条对齐）：
  *   - 贪心玩家：每次取「行优先扫描到的首个同值可连对」（端点排除冰冻格，
  *     连线不可穿越冰冻格——与 Frost.isBoardSolvable 同一定义）消除，
- *     随后 Frost.thawAround 解冻四邻；步频按每 1.5s 一步近似。
+ *     随后 Frost.crackAround 对四邻冰封裂冰（issue #49 HP=2：两次邻近消除才解冻，
+ *     hp=1 裂纹态仍封锁端点与路径）；步频按每 1.5s 一步近似。
  *     说明：不直接用 L.findSolvablePair——它对 rng 取值序洗牌且不了解冰冻端点，
  *     这里用确定性行优先扫描保证复现，并对齐 game.js 的冰冻选择门控。
  *   - 巡猎者：按关卡 hunter 参数走真实 Enemy.tick，时钟按 250ms 心跳推进
@@ -195,7 +196,7 @@
            (enemyState.target.r === pair.b.r && enemyState.target.c === pair.b.c))) {
         enemyState = ENM.cancelTarget(enemyState, enemyState.target.r, enemyState.target.c);
       }
-      frostState = FRZ.thawAround(frostState, pair.a.r, pair.a.c, pair.b.r, pair.b.c);
+      frostState = FRZ.crackAround(frostState, pair.a.r, pair.a.c, pair.b.r, pair.b.c).state;
       grid[pair.a.r][pair.a.c] = 0;
       grid[pair.b.r][pair.b.c] = 0;
     }

@@ -85,7 +85,7 @@ function runChecks() {
   /* 6. index.html 挂载 */
   check('index.html：#fxlayer canvas + fx.js 脚本（game.js 之前）',
     /<canvas id="fxlayer"/.test(html) &&
-    /<script src="js\/fx\.js"><\/script>\s*\n\s*<script src="js\/game\.js"><\/script>/.test(html));
+    /<script src="js\/fx\.js(\?[^"]*)?"><\/script>\s*\n\s*<script src="js\/game\.js(\?[^"]*)?"><\/script>/.test(html)); // issue #52: tolerate ?v= cache-bust
 
   /* 7. CSS 表现层 */
   check('CSS：#fxlayer 固定全屏层且不吃事件',

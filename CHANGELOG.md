@@ -3,6 +3,13 @@
 本项目所有值得注意的变更都记录在此文件。
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### Fixed
+
+- **裂纹态视觉同步回归测试**（issue #52，PR #50 二轮复核）：新增运行时仿真 `tests/frost-crack-runtime-check.js`——Node 宿主垫片 + 虚拟时钟按 index.html 同序加载真实 `js/*.js`，在 L3（无巡猎者预冻关）端到端断言 250ms 心跳独立于 enemyState 持续同步、裂冰瞬间 `.cracked` 立即上屏并跨心跳持久、破裂清态。该套件在 PR #50 HEAD（ed5ea6a）全绿、在修复前代码（031191d）必红，锁定心跳拆分与立即同步两处修复不被回退；已注册进 `tests/run-tests.js`。
+- **缓存击穿**：`index.html` 为 `css/style.css` 与全部 `js/*.js` 追加 `?v=r52` 版本参数——真机复核曾加载到修复前的旧缓存脚本，导致已修复代码被误判未修复（两处静态检查的选择器同步兼容 `?v=` 参数）。
+
 ## [2.0.0] - 2026-09
 
 冰晶星云战役篇：游戏从单棋盘连连看升级为带星图、存档与战役敌人的星系战役。

@@ -23,6 +23,8 @@ var frostChecks = require('./frost-static-check.js');
 var enemyTests = require('./enemy.define.js');
 var enemyChecks = require('./enemy-static-check.js');
 var frostWiringChecks = require('./frost-wiring-static-check.js');
+var frostReworkChecks = require('./frost-rework-static-check.js');
+var frostCrackChecks = require('./frost-crack-runtime-check.js');
 var starmapChecks = require('./starmap-static-check.js');
 var fxChecks = require('./fx-static-check.js');
 var bgmRaceChecks = require('./bgm-race-check.js');
@@ -36,7 +38,7 @@ var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   campaignTests.runAll(), saveTests.runAll(), campaignChecks.runChecks(),
   frostTests.runAll(), frostChecks.runChecks(),
   enemyTests.runAll(), enemyChecks.runChecks(),
-  frostWiringChecks.runChecks(), starmapChecks.runChecks(),
+  frostWiringChecks.runChecks(), frostReworkChecks.runChecks(), starmapChecks.runChecks(), frostCrackChecks.runChecks(),
   fxChecks.runChecks(),
   simulationTests.runAll());
 var pass = 0;

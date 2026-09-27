@@ -31,7 +31,7 @@ function runChecks() {
 
   /* ================ A. index.html 资源加载 ================ */
   var scriptSrcs = (html.match(/<script src="([^"]+)"><\/script>/g) || [])
-    .map(function (s) { return s.match(/src="([^"]+)"/)[1]; });
+    .map(function (s) { return s.match(/src="([^"]+)"/)[1].split('?')[0]; }); // issue #52: strip ?v= cache-bust
   var iFrost = scriptSrcs.indexOf('js/frost.js');
   var iEnemy = scriptSrcs.indexOf('js/enemy.js');
   var iGame = scriptSrcs.indexOf('js/game.js');
@@ -48,8 +48,10 @@ function runChecks() {
     /function onTileClick\([\s\S]{0,600}FRZ\.canSelect\(frostState, r, c\)/.test(game));
   check('匹配守卫：连通判定前经 Frost.canMatch 把关端点',
     /FRZ\.canMatch\(frostState, a\.r, a\.c, b\.r, b\.c\)[\s\S]{0,200}L\.findPath\(grid, a, b\)/.test(game));
-  check('消除联动：eliminate 内调用 Frost.thawAround（规则2 邻格解冻）',
-    /function eliminate\([\s\S]{0,1500}FRZ\.thawAround\(frostState, a\.r, a\.c, b\.r, b\.c\)/.test(game));
+  // issue #49：消除联动从 thawAround 切换为 crackAround（HP=2 裂冰语义）——
+  // 属行为变更导致的接线断言适配；thawAround 保留为 crackAround 的 state 投影兼容层（公开 API 清单回归）
+  check('消除联动：eliminate 内调用 Frost.crackAround（规则2 HP=2 邻格裂冰）',
+    /function eliminate\([\s\S]{0,1500}FRZ\.crackAround\(frostState, a\.r, a\.c, b\.r, b\.c\)/.test(game));
   check('敌人联动：消除预警目标 → Enemy.cancelTarget',
     /function eliminate\([\s\S]{0,1500}ENM\.cancelTarget\(enemyState/.test(game));
   check('心跳驱动：Enemy.tick 由 setInterval 轮询（沿用 onTimerTick 模式，无 rAF）',
@@ -93,6 +95,22 @@ function runChecks() {
   check('CSS：prefers-reduced-motion 回退（关动画，仅静态 tint/描边）',
     !!rm && /tile-frost-warn/.test(rm[0]) && /animation: none/.test(rm[0]));
 
+  /* ================ C2. issue #49 裂纹态渲染与裂冰联动静态断言 ================ */
+  check('CSS：裂纹态覆盖层 .tile-frozen.cracked（issue #49）',
+    /\.tile-slot\.tile-frozen\.cracked::before/.test(css));
+  check('CSS：裂冰震颤动画 crackshake + reduced-motion 关停',
+    /@keyframes crackshake/.test(css) && /tile-cracking/.test(css.match(/@media \(prefers-reduced-motion: reduce\)[\s\S]*?\n\}/g).join('\n')));
+  check('game.js：heartbeat 经 crackedList 同步 cracked 类（渲染分层数据驱动）',
+    /FRZ\.crackedList\(frostState\)/.test(game) &&
+    /classList\.toggle\('cracked', !!cracked\[k\]\)/.test(game));
+  check('game.js：破裂走 playThaw+thaw 粒子，裂冰走 playCrack+crack 粒子（双通道分离）',
+    /crackRes\.broken\.forEach\([\s\S]{0,120}playThaw/.test(game) &&
+    /crackRes\.cracked\.forEach\([\s\S]{0,120}playCrack/.test(game));
+  check('game.js：restart 复位与洗牌解冻均清理 cracked 类（无残留裂纹）',
+    (game.match(/classList\.remove\('cracked'\)/g) || []).length >= 2);
+  check('fx.js：crack 粒子种类已注册且量级低于 thaw（issue #49）',
+    /crack:\s*{[^}]*count: 18/.test(fs.readFileSync(path.join(root, 'js', 'fx.js'), 'utf8')));
+
   /* ================ D. 纯函数管线仿真（真实 Frost + Enemy 模块） ================ */
   // 复现 game.js 接线逻辑的最小状态机：验证事件流/状态迁移与两个模块契约吻合。
   function makeCtx(frostState, tiles) {
@@ -129,10 +147,13 @@ function runChecks() {
     !F.canMatch(out3.state, 1, 1, 1, 2));
   fs1 = out3.state;
 
-  // D2: 规则2 解冻通道——消除 (1,2)+(2,2)... 需同类可连对，这里直接验证 thawAround 坐标口径
-  var thawed = F.thawAround(fs1, 1, 2, 2, 1); // (1,1) 与 (1,2)/(2,1) 正交相邻
-  check('仿真D2 消除邻格解冻：(1,1) 解除，非邻格保留',
-    F.canSelect(thawed, 1, 1) && F.countFrozen(thawed) === 0);
+  // D2: 规则2 裂冰通道（issue #49 HP=2）——消除 (1,2)+(2,1)... 需同类可连对，这里直接验证 crackAround 坐标口径：
+  // 第一次邻近消除裂冰不解封，第二次才解冻
+  var crackedD2 = F.crackAround(fs1, 1, 2, 2, 1); // (1,1) 与 (1,2)/(2,1) 正交相邻
+  var thawedD2 = F.crackAround(crackedD2.state, 1, 2, 2, 1);
+  check('仿真D2 消除邻格两次裂冰才解冻：(1,1) 第一次仍封锁、第二次解除，非邻格保留',
+    !F.canSelect(crackedD2.state, 1, 1) && F.canSelect(thawedD2.state, 1, 1) &&
+    F.countFrozen(thawedD2.state) === 0);
 
   // D3: 上限 4 —— 4 格冻结后 canFreeze=false → tick 返回 skip(frozen-cap)
   var fs3 = F.create();

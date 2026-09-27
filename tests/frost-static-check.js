@@ -69,10 +69,23 @@ function runChecks() {
   }
   check('行为侧证：同屏冻结封顶 4 个，第 5 个起 applied=false',
     F.countFrozen(cap) === 4 && skipped === 1);
-  var diag = { frozen: { '2,2': { at: 1 }, '3,2': { at: 2 } }, telegraphs: {} };
-  var thawed = F.thawAround(diag, 2, 3, 9, 9);
-  check('行为侧证：thawAround 解冻正交邻 (2,2)，保留对角 (3,2)（规则2不含对角）',
-    F.canSelect(thawed, 2, 2) === true && F.canSelect(thawed, 3, 2) === false);
+  var diag = { frozen: { '2,2': { at: 1, hp: 2 }, '3,2': { at: 2, hp: 2 } }, telegraphs: {} };
+  var crackedOnce = F.crackAround(diag, 2, 3, 9, 9); // 第一次邻近消除：正交邻裂冰 hp2→1，对角不裂
+  var crackedTwice = F.crackAround(crackedOnce.state, 2, 3, 9, 9); // 第二次：正交邻破裂解冻
+  check('行为侧证：crackAround 第一次裂冰不解封(HP=2)，第二次才解冻正交邻 (2,2)，对角 (3,2) 始终保留（规则2不含对角）',
+    F.canSelect(crackedOnce.state, 2, 2) === false &&
+    F.canSelect(crackedTwice.state, 2, 2) === true &&
+    F.canSelect(crackedTwice.state, 3, 2) === false);
+
+  /* 6b. issue #49 HP=2 公开 API 与视觉接线侧证 */
+  check('issue #49：crack/crackAround/crackedList/FREEZE_HP=2 公开可用',
+    typeof F.crack === 'function' && typeof F.crackAround === 'function' &&
+    typeof F.crackedList === 'function' && F.FREEZE_HP === 2);
+  var hp2 = { frozen: { '5,5': { at: 1, hp: 2 } }, telegraphs: {} };
+  var hp2c = F.crack(hp2, 5, 5);
+  check('issue #49：裂纹态（hp=1）仍不可选（渲染层 cracked 变体的行为侧证）',
+    hp2c.cracked === true && F.canSelect(hp2c.state, 5, 5) === false &&
+    F.crackedList(hp2c.state).length === 1);
 
   /* 7. 测试注册：新用例与静态断言已挂入 run-tests.js */
   check('run-tests.js 注册 frost.define / frost-static-check',
