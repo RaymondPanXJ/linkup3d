@@ -100,12 +100,23 @@
       return true;
     }
 
+    // issue #47：浏览器明确报告「本页从未有用户激活」时不要调 resume()——
+    // 无激活上下文里的 resume 同样被自动播放策略拒绝并输出告警。
+    // userActivation 不可用（旧浏览器）时返回 false，维持原重试行为。
+    function activationBlocked() {
+      return !!(typeof navigator !== 'undefined' && navigator.userActivation &&
+                navigator.userActivation.hasBeenActive === false);
+    }
+
     // resume 是异步的（返回 Promise）：fire-and-forget + 同步检查 state 会永远读到
     // 'suspended'（issue #45 根因1）。统一经 promise 收敛，所有分支都 settle，绝不抛错。
     function resumed() {
       if (!ctx) return Promise.resolve(false);
       if (ctx.state === 'running') return Promise.resolve(true);
       if (!ctx.resume) return Promise.resolve(false);
+      // 无手势路径（issue #47）：跳过无意义的 resume 调用，避免残留告警；
+      // 决议 false 后由 game.js 手势重试在手势内再次启动。
+      if (activationBlocked()) return Promise.resolve(false);
       try {
         var p = ctx.resume();
         if (!p || typeof p.then !== 'function') {
