@@ -31,7 +31,7 @@ function runChecks() {
 
   /* ================ A. index.html 资源加载 ================ */
   var scriptSrcs = (html.match(/<script src="([^"]+)"><\/script>/g) || [])
-    .map(function (s) { return s.match(/src="([^"]+)"/)[1]; });
+    .map(function (s) { return s.match(/src="([^"]+)"/)[1].split('?')[0]; }); // issue #52: strip ?v= cache-bust
   var iFrost = scriptSrcs.indexOf('js/frost.js');
   var iEnemy = scriptSrcs.indexOf('js/enemy.js');
   var iGame = scriptSrcs.indexOf('js/game.js');
