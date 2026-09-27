@@ -651,6 +651,8 @@
       SFX.crack();
       crackRes.cracked.forEach(function (p) { playCrack(p.r, p.c); fxBurst(p.r, p.c, 'crack'); });
     }
+    // 缺陷1 返工（issue #51）：裂冰后立即同步视觉，不等 ≤250ms 心跳（即时反馈）
+    syncFrostVisuals(Date.now());
 
     var now = Date.now();
     var gap = lastMatchAt ? now - lastMatchAt : Infinity;
@@ -696,10 +698,38 @@
 
       if (L.countTiles(grid) === 0) {
         win();
-      } else if (!L.hasSolvablePair(grid)) {
+      } else if (!hasUnfrozenSolvablePair()) {
         announceShuffle();
       }
     }, REMOVE_MS);
+  }
+
+  /* 冰封感知死局判定（缺陷2 返工，issue #51）：存在「两端点均未冰封且路径可达」
+   * 的同值对才算有解。冰封格在 grid 上仍占位，findPath 天然将其视为路径障碍；
+   * 端点仅在未冰冻格中按值分组配对。无冰封时与 L.hasSolvablePair 等价（自由模式）。
+   * 旧判定 L.hasSolvablePair 无视冰封，会在冰封封锁路径时误判"有解"导致玩家软锁。 */
+  function hasUnfrozenSolvablePair() {
+    if (!FRZ.frozenList(frostState).length) return L.hasSolvablePair(grid);
+    var size = L.gridSize(grid);
+    var byValue = {};
+    for (var r = 1; r <= size.rows; r++) {
+      for (var c = 1; c <= size.cols; c++) {
+        var v = grid[r][c];
+        if (v > 0 && FRZ.canSelect(frostState, r, c)) {
+          (byValue[v] = byValue[v] || []).push({ r: r, c: c });
+        }
+      }
+    }
+    var values = Object.keys(byValue);
+    for (var i = 0; i < values.length; i++) {
+      var cells = byValue[values[i]];
+      for (var x = 0; x < cells.length; x++) {
+        for (var y = x + 1; y < cells.length; y++) {
+          if (L.findPath(grid, cells[x], cells[y])) return true;
+        }
+      }
+    }
+    return false;
   }
 
   /* 无可连对：先解释 ≥800ms 再洗牌，避免玩家对突然变化摸不着头脑（issue #16） */
@@ -1072,16 +1102,20 @@
   }
 
   function onHunterTick() {
-    if (!enemyState || !running || paused) return;
     var now = Date.now();
-    var res = ENM.tick(enemyState, now, hunterCtx());
-    enemyState = res.state;
-    res.events.forEach(function (ev) { handleEnemyEvent(ev, now); });
-    syncFrostVisuals(now);
-    if (ENM.isThreatening(enemyState, now) && now - lastWarnSoundAt >= 1000) {
-      lastWarnSoundAt = now;
-      SFX.warn();
+    // 缺陷1 返工（issue #51）：enemy tick 保持 enemyState 门控，
+    // syncFrostVisuals 移出门控始终执行——无巡猎者关卡（L2/L5 预冻关）
+    // enemyState=null 时裂纹态/冰封三态仍需心跳同步上屏。
+    if (enemyState && running && !paused) {
+      var res = ENM.tick(enemyState, now, hunterCtx());
+      enemyState = res.state;
+      res.events.forEach(function (ev) { handleEnemyEvent(ev, now); });
+      if (ENM.isThreatening(enemyState, now) && now - lastWarnSoundAt >= 1000) {
+        lastWarnSoundAt = now;
+        SFX.warn();
+      }
     }
+    syncFrostVisuals(now);
   }
 
   setInterval(onHunterTick, 250); // 沿用现有 setInterval 心跳模式（同 onTimerTick）
