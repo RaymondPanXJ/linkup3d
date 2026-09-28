@@ -23,25 +23,26 @@ function runChecks() {
   }
 
   /* 1. 数据表：10 战役场景 + 3 无尽场景 + 默认，全部通过 validateScene */
-  check('scene.js 数据表含 default + s0..s9 + se-easy/normal/hard 共 14 场景',
-    ['default', 's0', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9',
+  check('scene.js 数据表含 default + s0..s10 + se-easy/normal/hard 共 15 场景',
+    ['default', 's0', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10',
       'se-easy', 'se-normal', 'se-hard'].every(function (id) {
       return Scene.byId(id) !== null;
-    }) && Object.keys(Scene.SCENES).length === 14);
+    }) && Object.keys(Scene.SCENES).length === 15);
   check('全部场景 validateScene 通过（hex 色板/density/elements 约束）',
     Object.keys(Scene.SCENES).every(function (k) {
       try { return Scene.validateScene(Scene.SCENES[k]); } catch (e) { return false; }
     }));
-  check('10 战役场景名逐一对应',
+  check('11 战役场景名逐一对应',
     Scene.SCENES.s0.name === '沉眠深空' && Scene.SCENES.s1.name === '光带航道' &&
     Scene.SCENES.s2.name === '霜野' && Scene.SCENES.s3.name === '警戒宙域' &&
     Scene.SCENES.s4.name === '冰原反射' && Scene.SCENES.s5.name === '双星裂隙' &&
     Scene.SCENES.s6.name === '暗夜极光' && Scene.SCENES.s7.name === '风雪星云' &&
-    Scene.SCENES.s8.name === '深渊回声' && Scene.SCENES.s9.name === '星核');
-  check('10 战役场景底色 hex 两两互异（每关独立色调）',
+    Scene.SCENES.s8.name === '深渊回声' && Scene.SCENES.s9.name === '星核' &&
+    Scene.SCENES.s10.name === '应力视界');
+  check('11 战役场景底色 hex 两两互异（每关独立色调）',
     (function () {
       var bases = {};
-      for (var i = 0; i < 10; i++) {
+      for (var i = 0; i < 11; i++) {
         var b = Scene.SCENES['s' + i].palette.base;
         if (bases[b]) return false;
         bases[b] = true;
@@ -51,7 +52,7 @@ function runChecks() {
   check('每关 palette.glow1 色调互异（辉光层独立）',
     (function () {
       var g = {};
-      for (var i = 0; i < 10; i++) {
+      for (var i = 0; i < 11; i++) {
         var v = Scene.SCENES['s' + i].palette.glow1;
         if (g[v]) return false;
         g[v] = true;
@@ -60,7 +61,7 @@ function runChecks() {
     })());
   check('每战役关至少一个叠加宇宙元素（default 除外）',
     (function () {
-      for (var i = 0; i < 10; i++) {
+      for (var i = 0; i < 11; i++) {
         if (!(Scene.SCENES['s' + i].elements.length >= 1)) return false;
       }
       return true;
@@ -68,7 +69,7 @@ function runChecks() {
   check('星群密度 density ∈ (0,1] 且逐关有差异',
     (function () {
       var ds = {};
-      for (var i = 0; i < 10; i++) {
+      for (var i = 0; i < 11; i++) {
         var d = Scene.SCENES['s' + i].density;
         if (!(d > 0 && d <= 1)) return false;
         ds[d] = true;
@@ -77,22 +78,23 @@ function runChecks() {
     })());
 
   /* 2. 映射纯函数 */
-  check('sceneForLevel(0..9) → s0..s9 一一对应',
+  check('sceneForLevel(0..10) → s0..s10 一一对应',
     (function () {
-      for (var i = 0; i < 10; i++) {
+      for (var i = 0; i < 11; i++) {
         if (Scene.sceneForLevel(i).id !== 's' + i) return false;
       }
       return true;
     })());
   check('sceneForLevel 越界/非法安全回退 default',
-    Scene.sceneForLevel(10).id === 'default' &&
+    Scene.sceneForLevel(11).id === 'default' &&
     Scene.sceneForLevel(-1).id === 'default' &&
     Scene.sceneForLevel(1.5).id === 'default' &&
     Scene.sceneForLevel('3').id === 'default');
   check('sceneForLevelIndex 与 sceneForLevel 同步（索引折算）',
     Scene.sceneForLevelIndex(0).id === 's0' &&
     Scene.sceneForLevelIndex(9).id === 's9' &&
-    Scene.sceneForLevelIndex(10).id === 'default');
+    Scene.sceneForLevelIndex(10).id === 's10' &&
+    Scene.sceneForLevelIndex(11).id === 'default');
   check('hudSceneIdFor 战役模式：campaignIdx → s<idx>，越界回退 default',
     Scene.hudSceneIdFor('campaign', 0) === 's0' &&
     Scene.hudSceneIdFor('campaign', 2) === 's2' &&
@@ -166,8 +168,8 @@ function runChecks() {
     /SceneLib\.blend\(fromScene, targetScene/.test(stars));
 
   /* 8. css：data-scene 覆盖背景变量，三主题之后（后者胜出） */
-  check('style.css 含 13 个 html[data-scene=...] 覆盖块（s0..s9 + 三无尽）',
-    (css.match(/html\[data-scene="/g) || []).length === 13);
+  check('style.css 含 14 个 html[data-scene=...] 覆盖块（s0..s10 + 三无尽）',
+    (css.match(/html\[data-scene="/g) || []).length === 14);
   check('style.css data-scene 块位于全部 [data-theme] 块之后（场景调色胜出）',
     (function () {
       var lastTheme = css.lastIndexOf('[data-theme=');

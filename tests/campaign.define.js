@@ -19,10 +19,10 @@
     try { fn(); return false; } catch (e) { return e instanceof Error; }
   }
 
-  // 用例C1 数据表形状：10 关、id 连续 0..9、字段齐全且整体校验通过
+  // 用例C1 数据表形状：11 关、id 连续 0..10、字段齐全且整体校验通过（issue #59 扩至 11 关）
   function c1() {
     var L = C.LEVELS;
-    var shapeOk = Array.isArray(L) && L.length === 10 &&
+    var shapeOk = Array.isArray(L) && L.length === 11 &&
       L.every(function (d, i) {
         return d.id === i && typeof d.name === 'string' && d.name.length > 0 &&
           'rows' in d && 'cols' in d && 'pairs' in d &&
@@ -31,7 +31,7 @@
     var valid = true;
     var err = '';
     try { C.validateAll(L); } catch (e) { valid = false; err = e.message; }
-    return case_('用例C1 LEVELS 共 10 关、id 连续、字段齐全且 validateAll 通过',
+    return case_('用例C1 LEVELS 共 11 关、id 连续、字段齐全且 validateAll 通过',
       shapeOk && valid, err || 'ok');
   }
 
@@ -214,15 +214,15 @@
     return case_('用例C10 isUnlocked 边界（首关恒开/前一关≥1星/越界）', ok);
   }
 
-  // 用例C11 解锁链：逐关通关推进，全 10 关按序解锁
+  // 用例C11 解锁链：逐关通关推进，全 11 关按序解锁（issue #59）
   function c11() {
     var prog = { v: 1, levels: {} };
     var ok = true;
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 11; i++) {
       if (!C.isUnlocked(i, prog)) { ok = false; break; }
       prog.levels[String(i)] = { stars: 2, bestScore: 100, bestTimeSec: 50 };
     }
-    var afterAll = C.isUnlocked(10, prog) === false;
+    var afterAll = C.isUnlocked(11, prog) === false;
     return case_('用例C11 解锁链按通关顺序推进至末关', ok && afterAll);
   }
 
@@ -231,7 +231,8 @@
     var n0 = C.nextLevel(0);
     var ok = n0 && n0.id === 1 && n0.name === '微光航道' &&
              C.nextLevel(8).id === 9 &&
-             C.nextLevel(9) === null &&
+             C.nextLevel(9).id === 10 &&
+             C.nextLevel(10) === null &&
              C.nextLevel(-1) === null &&
              C.nextLevel(99) === null &&
              C.nextLevel(1.5) === null;
@@ -263,7 +264,8 @@
   // 用例C15 levelAt：合法返回定义，非法返回 null
   function c15() {
     var ok = C.levelAt(0).id === 0 && C.levelAt(9).id === 9 &&
-             C.levelAt(10) === null && C.levelAt(-1) === null &&
+             C.levelAt(10).id === 10 && C.levelAt(11) === null &&
+             C.levelAt(-1) === null &&
              C.levelAt(2.5) === null;
     return case_('用例C15 levelAt 合法返回定义 / 非法返回 null', ok);
   }

@@ -1524,6 +1524,35 @@ html[data-scene="s9"] {
   --bg-glow-3: rgba(90, 38, 8, .22);
 }
 
+/* s10「应力视界」（issue #59）：近乎纯黑 + 吸积盘橙金低饱和辉光 */
+html[data-scene="s10"] {
+  --bg-base: #050208;
+  --bg-glow-1: #3a1e08;
+  --bg-glow-2: #120a1e;
+  --bg-glow-3: rgba(58, 30, 8, .22);
+}
+
+/* ---------------- 黑洞引力扭曲视效（issue #59，纯表现层） ----------------
+ * --warp-* 由 gravity.js 逐格注入（幅度随与黑洞锚点的距离，方向两档符号）。
+ * keyframes 0% 静止 → 35% 满拉伸（迟滞感来自 ease-out 前段快后段慢）→ 100% 回弹。
+ * 形变只作用于 .tile-spin（外层），与 shake/removing 等既有 spin 层动画互不叠加冲突
+ * （warp 期间同格既有动画本就罕见）。 */
+.tile-slot.tile-warp .tile-spin {
+  animation: gravity-warp var(--warp-hold, 900ms) cubic-bezier(.22, .68, .36, 1) both;
+}
+@keyframes gravity-warp {
+  0%   { transform: skewX(0) scaleX(1) rotate(0); }
+  35%  { transform:
+           skewX(calc(var(--warp-mag, 0) * var(--warp-sign, 1) * 1deg))
+           scaleX(var(--warp-sx, 1))
+           rotate(calc(var(--warp-rot, 0) * var(--warp-sign, 1) * 1deg)); }
+  100% { transform: skewX(0) scaleX(1) rotate(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* JS 侧 mount 已 no-op；此处双保险，杜绝任何残留在途类继续动画 */
+  .tile-slot.tile-warp .tile-spin { animation: none; }
+}
+
 html[data-scene="se-easy"] {
   --bg-base: #04101c;
   --bg-glow-1: #0d3b56;
@@ -1543,4 +1572,96 @@ html[data-scene="se-hard"] {
   --bg-glow-1: #5a2608;
   --bg-glow-2: #311404;
   --bg-glow-3: rgba(90, 38, 8, .22);
+}
+
+/* ---------------- UFO 冷光束视效层（issue #57，纯表现层） ----------------
+ * #ufoLayer 位于 #board 内（3D 共享空间），translateZ 抬至牌面顶之上、
+ * 弹层（z-index≥19，独立 stacking context）之下；pointer-events 全穿透。 */
+#ufoLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform: translateZ(calc(var(--depth) / 2 + 24px));
+  transform-style: preserve-3d;
+}
+.ufo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  aspect-ratio: 2 / 1;
+  will-change: transform;
+}
+.ufo-bob { width: 100%; height: 100%; position: relative; }
+.ufo.hovering .ufo-bob { animation: ufo-bob 2.2s ease-in-out infinite; }
+.ufo-dome {
+  position: absolute;
+  left: 32%;
+  top: 2%;
+  width: 36%;
+  height: 46%;
+  border-radius: 999px 999px 42% 42%;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .95), rgba(150, 230, 255, .55) 45%, rgba(40, 120, 190, .35) 80%);
+  box-shadow: 0 0 12px rgba(140, 220, 255, .6), inset 0 -4px 8px rgba(10, 40, 80, .5);
+}
+.ufo-body {
+  position: absolute;
+  left: 0;
+  top: 38%;
+  width: 100%;
+  height: 44%;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 50% 20%, #bfe3ff 0%, #5f8fc9 32%, #2b4a7e 68%, #12233f 100%);
+  box-shadow: 0 0 18px rgba(96, 165, 255, .55), inset 0 -6px 10px rgba(4, 12, 30, .65);
+}
+.ufo-lights {
+  position: absolute;
+  left: 8%;
+  top: 58%;
+  width: 84%;
+  height: 16%;
+  border-radius: 999px;
+  background: repeating-linear-gradient(90deg,
+    rgba(160, 240, 255, .95) 0 6%, transparent 6% 14%);
+  filter: blur(1px);
+  animation: ufo-lights 1.6s ease-in-out infinite;
+  opacity: .9;
+}
+.ufo-glow {
+  position: absolute;
+  left: 18%;
+  top: 62%;
+  width: 64%;
+  height: 44%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 30%, rgba(140, 230, 255, .5), transparent 70%);
+  opacity: .7;
+}
+@keyframes ufo-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-7px); }
+}
+@keyframes ufo-lights {
+  0%, 100% { opacity: .45; }
+  50%      { opacity: .95; }
+}
+/* 锥形冷光束：碟底窄→目标格宽，达峰由 JS 置 opacity=1 经 200ms 过渡驱动 */
+.ufo-beam {
+  transition: opacity 200ms ease-in; /* 达峰过渡：JS 下一帧置 opacity=1 即触发（BEAM_RISE_MS） */
+  position: absolute;
+  opacity: 0;
+  clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
+  background: linear-gradient(180deg,
+    rgba(190, 245, 255, .95) 0%,
+    rgba(120, 210, 255, .6) 45%,
+    rgba(90, 190, 255, .28) 80%,
+    rgba(80, 180, 255, .1) 100%);
+  filter: blur(2px);
+  box-shadow: 0 0 24px rgba(140, 220, 255, .5);
+  will-change: opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* JS 层已保证 reduced 时不产生动画元素；此处兜底关停循环动画 */
+  .ufo.hovering .ufo-bob, .ufo-lights { animation: none; }
 }
