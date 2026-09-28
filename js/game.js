@@ -399,6 +399,44 @@
   var campaignIdx = null;
   var campaignData = SV.load(typeof localStorage !== 'undefined' ? localStorage : null);
 
+  /* ---------------- 战役场景系统接线（issue #53） ----------------
+   * 进关/退局/切模式切难度统一走 applyScene()：星空叠加走 Stars 句柄
+   * setScene（stars.js 内部 blend ≥1s 渐变），CSS 侧同步 html[data-scene]
+   * 覆盖背景辉光变量，HUD 场景名走 renderHud。无 Scene/Stars 时全部静默降级。 */
+  var SC = (function () {
+    try { return window.Scene || null; } catch (e) { return null; }
+  })();
+  var sceneNameEl = document.getElementById('sceneName');
+  var starsHandle = null;
+
+  function currentSceneId() {
+    if (!SC) return null;
+    return SC.hudSceneIdFor(
+      campaignIdx !== null ? 'campaign' : mode,
+      campaignIdx !== null ? campaignIdx : difficulty);
+  }
+
+  function applyScene() {
+    if (!SC) return;
+    var scene = SC.byId(currentSceneId()) || SC.SCENES[SC.DEFAULT_SCENE_ID];
+    try {
+      document.documentElement.setAttribute('data-scene', scene.id);
+    } catch (e) { /* 无 DOM 环境忽略 */ }
+    if (starsHandle) starsHandle.setScene(scene);
+    renderSceneName();
+  }
+
+  function renderSceneName() {
+    if (!sceneNameEl || !SC) return;
+    var scene = SC.byId(currentSceneId());
+    sceneNameEl.textContent = scene ? scene.name : '—';
+  }
+
+  function initSceneSystem() {
+    starsHandle = window.Stars.mount(document.getElementById('starfield'));
+    applyScene();
+  }
+
   function nowMs() {
     return (window.performance && window.performance.now)
       ? window.performance.now() : Date.now();
@@ -987,6 +1025,7 @@
     refreshBest();
     buildBoard();
     renderHud();
+    applyScene(); // issue #53：新局（含切模式/切难度）同步场景
   }
 
   document.getElementById('restart').addEventListener('click', restart);
@@ -1267,6 +1306,7 @@
     finalTitleEl.textContent = '恭喜通关';
     renderTime();
     renderHud();
+    applyScene(); // issue #53：进关切换独立场景
     showToast('第' + (i + 1) + '关 · ' + lv.name);
   }
 
@@ -1276,6 +1316,7 @@
     setCampaignControlsDisabled(false);
     campaignBtn.setAttribute('aria-pressed', 'false');
     timeLabelEl.textContent = mode === TM.MODES.timed ? '倒计时' : '用时';
+    applyScene(); // issue #53：退局回自由模式场景
   }
 
   function renderFinalStars(n) {
@@ -1563,8 +1604,8 @@
   try { seenTutorial = !!localStorage.getItem(Hint.TUT_KEY); } catch (e) { /* 无存储视为未看过 */ }
   if (!seenTutorial) tutorial.show();
 
-  /* ---------------- 动态星空背景 ---------------- */
-  window.Stars.mount(document.getElementById('starfield'));
+  /* ---------------- 动态星空背景 + 场景系统初始化（issue #53） ---------------- */
+  initSceneSystem();
 
   /* ---------------- 音频自诊断钩子（issue #45，供 TechLead 真机插桩，只读） ---------------- */
   window.__audioDiag = function () {

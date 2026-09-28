@@ -29,6 +29,7 @@ var starmapChecks = require('./starmap-static-check.js');
 var fxChecks = require('./fx-static-check.js');
 var bgmRaceChecks = require('./bgm-race-check.js');
 var audioGestureChecks = require('./audio-gesture-static-check.js');
+var campaignSceneChecks = require('./campaign-scene-check.js');
 var simulationTests = require('./level-simulation.define.js');
 
 var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
@@ -39,7 +40,7 @@ var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   frostTests.runAll(), frostChecks.runChecks(),
   enemyTests.runAll(), enemyChecks.runChecks(),
   frostWiringChecks.runChecks(), frostReworkChecks.runChecks(), starmapChecks.runChecks(), frostCrackChecks.runChecks(),
-  fxChecks.runChecks(),
+  fxChecks.runChecks(), campaignSceneChecks.runChecks(),
   simulationTests.runAll());
 var pass = 0;
 
