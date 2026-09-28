@@ -92,6 +92,11 @@
   var FX = window.FX;
   var fxLayer = FX.mount(document.getElementById('fxlayer'));
 
+  /* UFO 冷光束视效层（issue #57，纯表现层）：DOM 层挂 #board 内 #ufoLayer，
+   * handleEnemyEvent 三分支各一行调用 + reset 处清除；FRZ/ENM 逻辑零改动。 */
+  var UFO = window.UFO;
+  var ufoLayer = UFO.mount(document.getElementById('ufoLayer'));
+
   // 目标格中心的视口坐标 → 触发一次粒子 burst
   function fxBurst(r, c, kind) {
     var s = slots[r + ',' + c];
@@ -789,6 +794,7 @@
     // 清除全部冰冻与预警以恢复「洗牌后必有解」的硬保证。
     // enemyState 目标若洗牌后失效，由既有 ctx.tiles 自愈机制处理，无需额外代码。
     frostState = FRZ.create();
+    ufoLayer.reset(); // 全场解冻同场清除在途 UFO（issue #57）
     Object.keys(slots).forEach(function (k) {
       slots[k].classList.remove('tile-frozen');
       slots[k].classList.remove('tile-frost-warn');
@@ -1003,7 +1009,7 @@
     if (typeof frostState !== 'undefined') {
       frostState = FRZ.create();
       enemyState = null;
-      lastWarnSoundAt = 0;
+      lastWarnSoundAt = 0; ufoLayer.reset(); // #57 清在途 UFO
     }
     score = 0; combo = 0; maxCombo = 0; lastMatchAt = 0;
     if (campaignIdx !== null) exitCampaign(); // 重新开始 = 退出战役局，回自由模式
@@ -1122,6 +1128,7 @@
       setSlotClass(ev.r, ev.c, 'tile-frost-warn', true);
       SFX.warn();
       lastWarnSoundAt = now;
+      ufoLayer.telegraph(ev.r, ev.c); // UFO 进场悬停（issue #57，纯视效）
     } else if (ev.type === 'freeze') {
       var out = FRZ.freeze(frostState, ev.r, ev.c, now);
       frostState = out.state;
@@ -1130,12 +1137,14 @@
         setSlotClass(ev.r, ev.c, 'tile-frozen', true);
         SFX.freeze();
         fxBurst(ev.r, ev.c, 'freeze'); // 冻结瞬间冰晶迸溅（issue #41）
+        ufoLayer.strike(ev.r, ev.c); // 同一帧发射冷光束（issue #57，不推迟冰封）
       }
       // applied=false（上限/重复竞态）：Frost 兜底拒绝，静默
       // 取舍记录（issue #31 要求5）：本单不做可解性回滚——T2 isBoardSolvable 为接口
       // 预留，上限 4 + 玩家消除邻格解冻通道已保证实践可解，T6 内容调优时再验证。
     } else if (ev.type === 'cancel') {
       clearWarn(ev.r, ev.c);
+      ufoLayer.cancel(ev.r, ev.c); // UFO 收起飞离（issue #57）
     }
     // 'skip'：无目标/达上限，本无红晕与音效，无需处理
   }
