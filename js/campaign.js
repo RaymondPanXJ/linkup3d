@@ -84,6 +84,13 @@
       id: 9, name: '星核之眼', rows: 6, cols: 8, pairs: 24,
       timeLimitSec: 480, parSec: 205,
       frost: [], hunter: { cadenceMs: 18000, telegraphMs: 2500 }
+    },
+    {
+      // 终章彩蛋关（issue #59）：gravity 配置驱动引力扭曲视效层（js/gravity.js）
+      id: 10, name: '黑洞应力异常', rows: 6, cols: 8, pairs: 24,
+      timeLimitSec: 300, parSec: 140,
+      frost: [], hunter: null,
+      gravity: { warpEveryMs: 3200, warpHoldMs: 900 }
     }
   ];
 
@@ -163,6 +170,23 @@
       if (h.telegraphMs >= h.cadenceMs) {
         throw new Error('hunter.telegraphMs 必须小于 cadenceMs: ' +
           h.telegraphMs + ' >= ' + h.cadenceMs);
+      }
+    }
+    // gravity 为可选配置（issue #59 终章关）：显式允许并校验结构，缺省即无引力层
+    if ('gravity' in def && def.gravity !== undefined && def.gravity !== null) {
+      var gv = def.gravity;
+      if (typeof gv !== 'object' || Array.isArray(gv)) {
+        throw new Error('gravity 必须为 {warpEveryMs, warpHoldMs} 或缺省');
+      }
+      if (!isPosInt(gv.warpEveryMs)) {
+        throw new Error('gravity.warpEveryMs 必须为正整数: ' + gv.warpEveryMs);
+      }
+      if (!isPosInt(gv.warpHoldMs)) {
+        throw new Error('gravity.warpHoldMs 必须为正整数: ' + gv.warpHoldMs);
+      }
+      if (gv.warpHoldMs >= gv.warpEveryMs) {
+        throw new Error('gravity.warpHoldMs 必须小于 warpEveryMs: ' +
+          gv.warpHoldMs + ' >= ' + gv.warpEveryMs);
       }
     }
     return true;

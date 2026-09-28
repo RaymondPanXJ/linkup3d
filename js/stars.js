@@ -317,6 +317,60 @@
         var y = h * 0.45 + Math.sin(a) * rad * 0.35;
         ctx.beginPath(); ctx.arc(x, y, 1.6, 0, Math.PI * 2); ctx.fill();
       });
+    },
+    // L11 黑洞应力异常（issue #59）：事件视界黑盘 + 倾斜椭圆吸积盘 + 透镜光晕环。
+    // 全解析式绘制（渐变/圆弧/相位角由 t 驱动，无逐帧随机、无逐像素运算）。
+    blackhole: function (ctx, el, items, t, w, h, fade) {
+      var cx = w * (typeof el.cx === 'number' ? el.cx : 0.72);
+      var cy = h * (typeof el.cy === 'number' ? el.cy : 0.28);
+      var r = (el.radius || 0.2) * Math.min(w, h);
+      var a = el.alpha * fade;
+      var tilt = 0.34;        // 椭圆盘纵向压缩（倾斜视角）
+      var lean = -0.28;       // 盘面倾角（rad）
+      var spin = t * el.speed * Math.PI * 2;
+      function disk(alpha) {
+        // 吸积盘环带：内缘白热 → 金 → 外缘橙渐隐（在已 translate/rotate/scale 系内）
+        var g = ctx.createRadialGradient(0, 0, r * 0.55, 0, 0, r * 1.65);
+        g.addColorStop(0, rgba('#fff6e0', alpha));
+        g.addColorStop(0.32, rgba('#ffd166', alpha * 0.9));
+        g.addColorStop(0.66, rgba(el.color, alpha * 0.7));
+        g.addColorStop(1, rgba(el.color, 0));
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(0, 0, r * 1.65, 0, Math.PI * 2); ctx.fill();
+      }
+      // 1) 后盘（上缘=多普勒增亮侧，全亮）
+      ctx.save();
+      ctx.translate(cx, cy); ctx.rotate(lean); ctx.scale(1, tilt);
+      disk(a);
+      ctx.restore();
+      // 2) 透镜光晕细环
+      ctx.strokeStyle = rgba('#ffe0b0', a * 0.5);
+      ctx.lineWidth = Math.max(1, r * 0.045);
+      ctx.beginPath(); ctx.arc(cx, cy, r * 1.12, 0, Math.PI * 2); ctx.stroke();
+      // 3) 事件视界：纯黑圆盘
+      ctx.fillStyle = rgba('#000000', Math.min(1, a + 0.15));
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+      // 4) 前盘（下缘横跨盘面，暗示多普勒：较暗档）
+      ctx.save();
+      ctx.translate(cx, cy); ctx.rotate(lean); ctx.scale(1, tilt);
+      ctx.beginPath();
+      ctx.rect(-r * 1.7, 0, r * 3.4, r * 1.7); // 只放行盘面下半（近侧）
+      ctx.clip();
+      disk(a * 0.45);
+      ctx.restore();
+      // 5) 吸积热斑：三点沿盘缘匀速公转（相位由 t 驱动，确定性）
+      ctx.save();
+      ctx.translate(cx, cy); ctx.rotate(lean); ctx.scale(1, tilt);
+      for (var i = 0; i < 3; i++) {
+        var ang = spin + i * (Math.PI * 2 / 3);
+        var px = Math.cos(ang) * r * 1.18, py = Math.sin(ang) * r * 1.18;
+        var hot = ctx.createRadialGradient(px, py, 0, px, py, r * 0.34);
+        hot.addColorStop(0, rgba('#fff6e0', a * 0.5 * (0.6 + 0.4 * Math.cos(ang))));
+        hot.addColorStop(1, rgba(el.color, 0));
+        ctx.fillStyle = hot;
+        ctx.beginPath(); ctx.arc(px, py, r * 0.34, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
     }
   };
 

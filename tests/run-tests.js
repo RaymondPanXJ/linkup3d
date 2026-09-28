@@ -31,6 +31,7 @@ var ufoChecks = require('./ufo-static-check.js');
 var bgmRaceChecks = require('./bgm-race-check.js');
 var audioGestureChecks = require('./audio-gesture-static-check.js');
 var campaignSceneChecks = require('./campaign-scene-check.js');
+var gravityChecks = require('./gravity-static-check.js');
 var simulationTests = require('./level-simulation.define.js');
 
 var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
@@ -42,6 +43,7 @@ var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   enemyTests.runAll(), enemyChecks.runChecks(),
   frostWiringChecks.runChecks(), frostReworkChecks.runChecks(), starmapChecks.runChecks(), frostCrackChecks.runChecks(),
   fxChecks.runChecks(), ufoChecks.runChecks(), campaignSceneChecks.runChecks(),
+  gravityChecks.runChecks(),
   simulationTests.runAll());
 var pass = 0;
 
