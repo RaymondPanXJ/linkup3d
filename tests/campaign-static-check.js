@@ -6,14 +6,14 @@
  *
  * 运行：node tests/run-tests.js 或单独 node tests/campaign-static-check.js
  */
-var fs = require('fs');
+var readUtf8 = require('./read-utf8.js');
 var path = require('path');
 
 function runChecks() {
   var root = path.join(__dirname, '..');
-  var campaign = fs.readFileSync(path.join(root, 'js', 'campaign.js'), 'utf8');
-  var save = fs.readFileSync(path.join(root, 'js', 'save.js'), 'utf8');
-  var runner = fs.readFileSync(path.join(root, 'tests', 'run-tests.js'), 'utf8');
+  var campaign = readUtf8(path.join(root, 'js', 'campaign.js'));
+  var save = readUtf8(path.join(root, 'js', 'save.js'));
+  var runner = readUtf8(path.join(root, 'tests', 'run-tests.js'));
   var C = require('../js/campaign.js');
   var S = require('../js/save.js');
 

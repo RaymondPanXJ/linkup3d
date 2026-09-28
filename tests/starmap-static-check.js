@@ -10,15 +10,15 @@
  *      （解锁链、星级判定、胜利存档/失败不存档、关卡时限归一化）。
  * 运行：node tests/run-tests.js 或单独 node tests/starmap-static-check.js
  */
-var fs = require('fs');
+var readUtf8 = require('./read-utf8.js');
 var path = require('path');
 
 function runChecks() {
   var root = path.join(__dirname, '..');
-  var html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  var css = fs.readFileSync(path.join(root, 'css', 'style.css'), 'utf8');
-  var game = fs.readFileSync(path.join(root, 'js', 'game.js'), 'utf8');
-  var runner = fs.readFileSync(path.join(root, 'tests', 'run-tests.js'), 'utf8');
+  var html = readUtf8(path.join(root, 'index.html'));
+  var css = readUtf8(path.join(root, 'css', 'style.css'));
+  var game = readUtf8(path.join(root, 'js', 'game.js'));
+  var runner = readUtf8(path.join(root, 'tests', 'run-tests.js'));
   var C = require('../js/campaign.js');
   var S = require('../js/save.js');
   var T = require('../js/timer.js');

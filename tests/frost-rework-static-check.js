@@ -11,13 +11,13 @@
  *
  * 运行：node tests/run-tests.js 或单独 node tests/frost-rework-static-check.js
  */
-var fs = require('fs');
+var readUtf8 = require('./read-utf8.js');
 var path = require('path');
 
 function runChecks() {
   var root = path.join(__dirname, '..');
-  var game = fs.readFileSync(path.join(root, 'js', 'game.js'), 'utf8');
-  var runner = fs.readFileSync(path.join(root, 'tests', 'run-tests.js'), 'utf8');
+  var game = readUtf8(path.join(root, 'js', 'game.js'));
+  var runner = readUtf8(path.join(root, 'tests', 'run-tests.js'));
   var F = require('../js/frost.js');
   var L = require('../js/link3d.js');
 

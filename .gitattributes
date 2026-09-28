@@ -1,0 +1,29 @@
+# issue #55: 全库统一 LF 行尾，防止 Windows core.autocrlf=true 检出
+# 造成 node tests/run-tests.js 静态断言假阳性
+* text=auto eol=lf
+
+# 常见文本类型显式声明 LF
+*.js   text eol=lf
+*.css  text eol=lf
+*.html text eol=lf
+*.md   text eol=lf
+*.json text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+
+# 二进制类型不做行尾转换
+*.png  -text
+*.jpg  -text
+*.jpeg -text
+*.gif  -text
+*.ico  -text
+*.svg  -text
+*.woff -text
+*.woff2 -text
+*.ttf  -text
+*.eot  -text
+*.mp3  -text
+*.wav  -text
+*.ogg  -text
+*.zip  -text
+*.pdf  -text

@@ -11,7 +11,7 @@
  *
  * 运行：node tests/run-tests.js 或单独 node tests/bgm-race-check.js
  */
-var fs = require('fs');
+var readUtf8 = require('./read-utf8.js');
 var path = require('path');
 
 function makeAudioContextStub(opts) {
@@ -63,7 +63,7 @@ function makeAudioContextStub(opts) {
 
 // 在沙箱里以给定 AudioContext 加载真实 music.js 播放层
 function loadPlayer(ctxStub) {
-  var code = fs.readFileSync(path.join(__dirname, '..', 'js', 'music.js'), 'utf8');
+  var code = readUtf8(path.join(__dirname, '..', 'js', 'music.js'));
   var win = { AudioContext: function () { return ctxStub; } };
   // 统计调度器 setInterval：验证并发 start 只建一个调度器
   var intervals = 0, cleared = 0, live = {};
@@ -94,8 +94,8 @@ function runChecks() {
   }
 
   var root = path.join(__dirname, '..');
-  var game = fs.readFileSync(path.join(root, 'js', 'game.js'), 'utf8');
-  var music = fs.readFileSync(path.join(root, 'js', 'music.js'), 'utf8');
+  var game = readUtf8(path.join(root, 'js', 'game.js'));
+  var music = readUtf8(path.join(root, 'js', 'music.js'));
 
   /* ============ A. 静态断言 ============ */
   // 根因1：禁止「ensure 内 fire-and-forget resume 后同步 return」模式

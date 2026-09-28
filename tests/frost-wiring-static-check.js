@@ -11,15 +11,15 @@
  *
  * 运行：node tests/run-tests.js 或单独 node tests/frost-wiring-static-check.js
  */
-var fs = require('fs');
+var readUtf8 = require('./read-utf8.js');
 var path = require('path');
 
 function runChecks() {
   var root = path.join(__dirname, '..');
-  var html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  var css = fs.readFileSync(path.join(root, 'css', 'style.css'), 'utf8');
-  var game = fs.readFileSync(path.join(root, 'js', 'game.js'), 'utf8');
-  var runner = fs.readFileSync(path.join(root, 'tests', 'run-tests.js'), 'utf8');
+  var html = readUtf8(path.join(root, 'index.html'));
+  var css = readUtf8(path.join(root, 'css', 'style.css'));
+  var game = readUtf8(path.join(root, 'js', 'game.js'));
+  var runner = readUtf8(path.join(root, 'tests', 'run-tests.js'));
   var F = require('../js/frost.js');
   var E = require('../js/enemy.js');
   var L = require('../js/link3d.js');
@@ -109,7 +109,7 @@ function runChecks() {
   check('game.js：restart 复位与洗牌解冻均清理 cracked 类（无残留裂纹）',
     (game.match(/classList\.remove\('cracked'\)/g) || []).length >= 2);
   check('fx.js：crack 粒子种类已注册且量级低于 thaw（issue #49）',
-    /crack:\s*{[^}]*count: 18/.test(fs.readFileSync(path.join(root, 'js', 'fx.js'), 'utf8')));
+    /crack:\s*{[^}]*count: 18/.test(readUtf8(path.join(root, 'js', 'fx.js'))));
 
   /* ================ D. 纯函数管线仿真（真实 Frost + Enemy 模块） ================ */
   // 复现 game.js 接线逻辑的最小状态机：验证事件流/状态迁移与两个模块契约吻合。
