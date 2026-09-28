@@ -26,7 +26,7 @@ var path = require('path');
 
 var ROOT = path.join(__dirname, '..');
 var SCRIPT_ORDER = ['link3d', 'combo', 'timer', 'ranking', 'music', 'stars', 'mobile',
-  'hint', 'tutorial', 'frost', 'enemy', 'campaign', 'save', 'fx', 'game'];
+  'hint', 'tutorial', 'frost', 'enemy', 'campaign', 'save', 'ufo', 'fx', 'game'];
 var EMOJIS = ['🍎', '🍇', '🍋', '🍉', '🚀', '🎲', '🐱', '🐼', '⚡', '🌙', '🍄', '🎈',
   '🍒', '🥕', '🌵', '🎸', '⚽', '🏀', '🐸', '🦊', '🍭', '🎯', '🔔', '🌈'];
 var L3_FROZEN = [{ r: 2, c: 2 }, { r: 3, c: 5 }];
