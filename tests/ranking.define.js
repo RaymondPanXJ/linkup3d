@@ -134,7 +134,8 @@
     var ok = e.score === 150 && e.seconds === 95 && e.maxCombo === 1 &&
              e.ts === 1700000000123;
     // 模块不直接调用 Date.now（纯函数可测性约束）
-    var src = require('fs').readFileSync(require.resolve('../js/ranking.js'), 'utf8');
+    var readUtf8 = require('./read-utf8.js');
+    var src = readUtf8(require.resolve('../js/ranking.js'));
     var noDateNow = !/Date\.now\(/.test(src);
     return case_('用例R10 createEntry 归一 + 模块零 Date.now 直调', ok && noDateNow);
   }

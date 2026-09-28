@@ -9,14 +9,14 @@
  *
  * 运行：node tests/run-tests.js 或单独 node tests/enemy-static-check.js
  */
-var fs = require('fs');
+var readUtf8 = require('./read-utf8.js');
 var path = require('path');
 
 function runChecks() {
   var root = path.join(__dirname, '..');
-  var enemy = fs.readFileSync(path.join(root, 'js', 'enemy.js'), 'utf8');
-  var campaign = fs.readFileSync(path.join(root, 'js', 'campaign.js'), 'utf8');
-  var runner = fs.readFileSync(path.join(root, 'tests', 'run-tests.js'), 'utf8');
+  var enemy = readUtf8(path.join(root, 'js', 'enemy.js'));
+  var campaign = readUtf8(path.join(root, 'js', 'campaign.js'));
+  var runner = readUtf8(path.join(root, 'tests', 'run-tests.js'));
   var E = require('../js/enemy.js');
 
   var results = [];

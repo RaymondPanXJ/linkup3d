@@ -9,16 +9,16 @@
  *
  * 运行：node tests/run-tests.js 或单独 node tests/fx-static-check.js
  */
-var fs = require('fs');
+var readUtf8 = require('./read-utf8.js');
 var path = require('path');
 
 function runChecks() {
   var root = path.join(__dirname, '..');
-  var fx = fs.readFileSync(path.join(root, 'js', 'fx.js'), 'utf8');
-  var game = fs.readFileSync(path.join(root, 'js', 'game.js'), 'utf8');
-  var css = fs.readFileSync(path.join(root, 'css', 'style.css'), 'utf8');
-  var html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  var runner = fs.readFileSync(path.join(root, 'tests', 'run-tests.js'), 'utf8');
+  var fx = readUtf8(path.join(root, 'js', 'fx.js'));
+  var game = readUtf8(path.join(root, 'js', 'game.js'));
+  var css = readUtf8(path.join(root, 'css', 'style.css'));
+  var html = readUtf8(path.join(root, 'index.html'));
+  var runner = readUtf8(path.join(root, 'tests', 'run-tests.js'));
   var FX = require('../js/fx.js');
 
   var results = [];

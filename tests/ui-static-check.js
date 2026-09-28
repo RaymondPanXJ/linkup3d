@@ -7,15 +7,15 @@
  * 既可作为模块被 run-tests.js 调用（runChecks() 返回结果数组），
  * 也可单独运行：node tests/ui-static-check.js
  */
-var fs = require('fs');
+var readUtf8 = require('./read-utf8.js');
 var path = require('path');
 
 function runChecks() {
 var root = path.join(__dirname, '..');
-var html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-var css = fs.readFileSync(path.join(root, 'css', 'style.css'), 'utf8');
-var game = fs.readFileSync(path.join(root, 'js', 'game.js'), 'utf8');
-var link3d = fs.readFileSync(path.join(root, 'js', 'link3d.js'), 'utf8');
+var html = readUtf8(path.join(root, 'index.html'));
+var css = readUtf8(path.join(root, 'css', 'style.css'));
+var game = readUtf8(path.join(root, 'js', 'game.js'));
+var link3d = readUtf8(path.join(root, 'js', 'link3d.js'));
 
 var results = [];
 function check(name, cond, detail) {

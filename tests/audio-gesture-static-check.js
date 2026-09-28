@@ -11,7 +11,7 @@
  *
  * 运行：node tests/run-tests.js 或单独 node tests/audio-gesture-static-check.js
  */
-var fs = require('fs');
+var readUtf8 = require('./read-utf8.js');
 var path = require('path');
 
 function makeAudioContextStub(opts) {
@@ -57,7 +57,7 @@ function makeAudioContextStub(opts) {
 
 // 以给定 AudioContext / userActivation 桩加载真实 music.js 播放层
 function loadPlayer(ctxStub, activation) {
-  var code = fs.readFileSync(path.join(__dirname, '..', 'js', 'music.js'), 'utf8');
+  var code = readUtf8(path.join(__dirname, '..', 'js', 'music.js'));
   var win = { AudioContext: function () { return ctxStub; } };
   var factory = new Function('window', 'self', 'module', 'navigator', 'setInterval', 'clearInterval',
     code + '\n;return (typeof module === "object" && module.exports) ? module.exports : window.Music;');
@@ -80,8 +80,8 @@ function runChecks() {
   }
 
   var root = path.join(__dirname, '..');
-  var game = fs.readFileSync(path.join(root, 'js', 'game.js'), 'utf8');
-  var music = fs.readFileSync(path.join(root, 'js', 'music.js'), 'utf8');
+  var game = readUtf8(path.join(root, 'js', 'game.js'));
+  var music = readUtf8(path.join(root, 'js', 'music.js'));
 
   /* ============ A. 静态断言 ============ */
   push('game.js 开机段不得无条件调用 ensureMusicStarted（旧裸启动行已移除）',

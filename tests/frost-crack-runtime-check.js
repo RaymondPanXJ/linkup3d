@@ -21,7 +21,7 @@
  * 运行：node tests/run-tests.js 或单独 node tests/frost-crack-runtime-check.js
  */
 'use strict';
-var fs = require('fs');
+var readUtf8 = require('./read-utf8.js');
 var path = require('path');
 
 var ROOT = path.join(__dirname, '..');
@@ -351,7 +351,7 @@ function runScenario(seed) {
   var args = host.sandboxArgs;
   var tail = '\n;return (typeof module === "object" && module.exports) ? module.exports : (typeof this !== "undefined" ? this : undefined);';
   SCRIPT_ORDER.forEach(function (name) {
-    var code = fs.readFileSync(path.join(ROOT, 'js', name + '.js'), 'utf8');
+    var code = readUtf8(path.join(ROOT, 'js', name + '.js'));
     var factory = new Function(args.names.concat('module').join(','), code + tail);
     factory.apply(host.win, args.values.concat([undefined]));
   });

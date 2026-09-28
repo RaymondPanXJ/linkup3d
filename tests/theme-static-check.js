@@ -7,7 +7,7 @@
  *
  * 运行：node tests/run-tests.js 或单独 node tests/theme-static-check.js
  */
-var fs = require('fs');
+var readUtf8 = require('./read-utf8.js');
 var path = require('path');
 
 /* ---- WCAG 2.1 相对亮度 / 对比度 ---- */
@@ -42,10 +42,10 @@ function varMapOf(css, selectorRe) {
 
 function runChecks() {
   var root = path.join(__dirname, '..');
-  var html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  var css = fs.readFileSync(path.join(root, 'css', 'style.css'), 'utf8');
-  var game = fs.readFileSync(path.join(root, 'js', 'game.js'), 'utf8');
-  var stars = fs.readFileSync(path.join(root, 'js', 'stars.js'), 'utf8');
+  var html = readUtf8(path.join(root, 'index.html'));
+  var css = readUtf8(path.join(root, 'css', 'style.css'));
+  var game = readUtf8(path.join(root, 'js', 'game.js'));
+  var stars = readUtf8(path.join(root, 'js', 'stars.js'));
 
   var results = [];
   function check(name, cond, detail) {

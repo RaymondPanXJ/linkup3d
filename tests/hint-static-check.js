@@ -4,13 +4,13 @@
  * 无浏览器环境：对 index.html / css/style.css / js/game.js 做结构断言。
  * 运行：node tests/run-tests.js
  */
-var fs = require('fs');
+var readUtf8 = require('./read-utf8.js');
 var path = require('path');
 
-var html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
-var css = fs.readFileSync(path.join(__dirname, '..', 'css', 'style.css'), 'utf8');
-var game = fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8');
-var hint = fs.readFileSync(path.join(__dirname, '..', 'js', 'hint.js'), 'utf8');
+var html = readUtf8(path.join(__dirname, '..', 'index.html'));
+var css = readUtf8(path.join(__dirname, '..', 'css', 'style.css'));
+var game = readUtf8(path.join(__dirname, '..', 'js', 'game.js'));
+var hint = readUtf8(path.join(__dirname, '..', 'js', 'hint.js'));
 
 function check(name, ok, detail) {
   return { name: name, pass: !!ok, detail: detail || (ok ? 'ok' : 'FAILED') };

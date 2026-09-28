@@ -7,13 +7,13 @@
  *
  * 运行：node tests/run-tests.js 或单独 node tests/frost-static-check.js
  */
-var fs = require('fs');
+var readUtf8 = require('./read-utf8.js');
 var path = require('path');
 
 function runChecks() {
   var root = path.join(__dirname, '..');
-  var frost = fs.readFileSync(path.join(root, 'js', 'frost.js'), 'utf8');
-  var runner = fs.readFileSync(path.join(root, 'tests', 'run-tests.js'), 'utf8');
+  var frost = readUtf8(path.join(root, 'js', 'frost.js'));
+  var runner = readUtf8(path.join(root, 'tests', 'run-tests.js'));
   var F = require('../js/frost.js');
 
   var results = [];
