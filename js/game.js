@@ -812,32 +812,13 @@
     }, REMOVE_MS);
   }
 
-  /* 冰封感知死局判定（缺陷2 返工，issue #51）：存在「两端点均未冰封且路径可达」
-   * 的同值对才算有解。冰封格在 grid 上仍占位，findPath 天然将其视为路径障碍；
-   * 端点仅在未冰冻格中按值分组配对。无冰封时与 L.hasSolvablePair 等价（自由模式）。
+  /* 冰封感知死局判定（缺陷2 返工，issue #51；issue #61 委托 FRZ 纯函数消除与提示的口径重复）：
+   * 存在「两端点均未冰封且路径可达」的同值对才算有解。冰封格在 grid 上仍占位，
+   * findPath 天然将其视为路径障碍；端点仅在未冰冻格中按值分组配对。
+   * 无冰封时与 L.hasSolvablePair 等价（自由模式）。
    * 旧判定 L.hasSolvablePair 无视冰封，会在冰封封锁路径时误判"有解"导致玩家软锁。 */
   function hasUnfrozenSolvablePair() {
-    if (!FRZ.frozenList(frostState).length) return L.hasSolvablePair(grid);
-    var size = L.gridSize(grid);
-    var byValue = {};
-    for (var r = 1; r <= size.rows; r++) {
-      for (var c = 1; c <= size.cols; c++) {
-        var v = grid[r][c];
-        if (v > 0 && FRZ.canSelect(frostState, r, c)) {
-          (byValue[v] = byValue[v] || []).push({ r: r, c: c });
-        }
-      }
-    }
-    var values = Object.keys(byValue);
-    for (var i = 0; i < values.length; i++) {
-      var cells = byValue[values[i]];
-      for (var x = 0; x < cells.length; x++) {
-        for (var y = x + 1; y < cells.length; y++) {
-          if (L.findPath(grid, cells[x], cells[y])) return true;
-        }
-      }
-    }
-    return false;
+    return FRZ.findUnfrozenSolvablePair(frostState, grid, L.findPath) !== null;
   }
 
   /* 无可连对：先解释 ≥800ms 再洗牌，避免玩家对突然变化摸不着头脑（issue #16） */
@@ -1648,8 +1629,10 @@
 
   hintBtn.addEventListener('click', function () {
     if (busy || !running || hintsLeft <= 0) return;
-    var pair = L.findSolvablePair(grid);
-    if (!pair) return; // 理论上无解时已自动洗牌，这里不做额外处理
+    // issue #61：提示必须走冰封感知口径（与死局判定 hasUnfrozenSolvablePair 同一函数），
+    // 否则高亮的对子玩家点不了（冰封/裂纹端点）或连线穿过冰封格误导路径描述。
+    var pair = FRZ.findUnfrozenSolvablePair(frostState, grid, L.findPath);
+    if (!pair) return; // 理论上无解时已自动洗牌，这里静默返回不消耗次数
     hintsLeft--;
     renderHintBtn();
     clearHintHighlight();

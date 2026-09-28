@@ -107,6 +107,20 @@
     return [key(r - 1, c), key(r + 1, c), key(r, c - 1), key(r, c + 1)];
   }
 
+  // Fisher–Yates 洗牌（与 link3d.shuffled 同式；rng 可注入以便测试复现，
+  // 保证无冰封时 findUnfrozenSolvablePair 与 L.findSolvablePair 逐 rng 调用等价）
+  function shuffleList(arr, rng) {
+    var a = arr.slice();
+    var random = rng || Math.random;
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(random() * (i + 1));
+      var t = a[i];
+      a[i] = a[j];
+      a[j] = t;
+    }
+    return a;
+  }
+
   /* ---------------- 公开 API ---------------- */
 
   // 空状态
@@ -294,6 +308,46 @@
     return false;
   }
 
+  /**
+   * 冰封感知可连对搜索（issue #61）：与 L.findSolvablePair 同构返回
+   * {a, b, value, path} 或 null。与 link3d 版差异仅在端点过滤：
+   * 端点仅取 FRZ.canSelect 为真的格（排除 frozen 与 cracked 态，hp>0 一律拒绝，
+   * 与选中/消除守卫 issue #49 口径一致）。路径由注入的 findPath 计算：
+   * 冰封格在 grid 上仍占位，findPath 天然将其视为路径障碍，连线必不穿冰封格。
+   *
+   * 实现与 L.findSolvablePair 同一遍历/洗牌算法（同列扫描顺序 + 同款 Fisher–Yates），
+   * 因此 frostState 无冰封时对同一 rng 与 L.findSolvablePair 逐调用等价（确定性）。
+   * findPath 为注入依赖（L.findPath），签名 findPath(grid, a, b) → path|null。
+   */
+  function findUnfrozenSolvablePair(frostState, grid, findPath, rng) {
+    if (typeof findPath !== 'function') return null;
+    if (!Array.isArray(grid) || grid.length < 3 ||
+        !grid[0] || typeof grid[0].length !== 'number' || grid[0].length < 3) return null;
+    var rows = grid.length - 2, cols = grid[0].length - 2;
+    var byValue = {};
+    for (var r = 1; r <= rows; r++) {
+      for (var c = 1; c <= cols; c++) {
+        var v = grid[r][c];
+        if (v > 0 && canSelect(frostState, r, c)) {
+          (byValue[v] = byValue[v] || []).push({ r: r, c: c });
+        }
+      }
+    }
+    var values = shuffleList(Object.keys(byValue), rng);
+    for (var i = 0; i < values.length; i++) {
+      var cells = byValue[values[i]];
+      for (var x = 0; x < cells.length; x++) {
+        for (var y = x + 1; y < cells.length; y++) {
+          var path = findPath(grid, cells[x], cells[y]);
+          if (path) {
+            return { a: cells[x], b: cells[y], value: Number(values[i]), path: path };
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   return {
     MAX_FROZEN: MAX_FROZEN,
     FREEZE_HP: FREEZE_HP,
@@ -311,6 +365,7 @@
     crackedList: crackedList,
     snapshot: snapshot,
     restore: restore,
-    isBoardSolvable: isBoardSolvable
+    isBoardSolvable: isBoardSolvable,
+    findUnfrozenSolvablePair: findUnfrozenSolvablePair
   };
 });
