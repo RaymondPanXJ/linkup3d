@@ -17,6 +17,7 @@ var path = require('path');
 function runChecks() {
   var root = path.join(__dirname, '..');
   var game = readUtf8(path.join(root, 'js', 'game.js'));
+  var frost = readUtf8(path.join(root, 'js', 'frost.js'));
   var runner = readUtf8(path.join(root, 'tests', 'run-tests.js'));
   var F = require('../js/frost.js');
   var L = require('../js/link3d.js');
@@ -45,38 +46,24 @@ function runChecks() {
   check('缺陷2a eliminate 尾部死局判定改用 hasUnfrozenSolvablePair（不再直接 L.hasSolvablePair）',
     /else if \(!hasUnfrozenSolvablePair\(\)\)\s*\{\s*announceShuffle\(\)/.test(game) &&
     !/else if \(!L\.hasSolvablePair\(grid\)\)/.test(game));
-  check('缺陷2b hasUnfrozenSolvablePair 定义存在：未冰冻格按值分组（FRZ.canSelect 过滤端点）',
-    /function hasUnfrozenSolvablePair\(\)/.test(game) &&
-    /function hasUnfrozenSolvablePair\(\)[\s\S]*?FRZ\.canSelect\(frostState, r, c\)/.test(game));
-  check('缺陷2c hasUnfrozenSolvablePair 用 L.findPath 判定连通（冰封格占位=路径阻挡）',
-    /function hasUnfrozenSolvablePair\(\)[\s\S]*?L\.findPath\(grid, cells\[x\], cells\[y\]\)/.test(game));
-  check('缺陷2d 无冰封时短路回退 L.hasSolvablePair（自由模式与旧判定等价）',
-    /function hasUnfrozenSolvablePair\(\)[\s\S]{0,200}L\.hasSolvablePair\(grid\)/.test(game));
+  /* issue #61 适配：hasUnfrozenSolvablePair 按 issue 要求委托 FRZ.findUnfrozenSolvablePair
+   * （消除与提示口径的重复），原内联实现的形状断言改为委托契约断言 +
+   * frost.js 侧 canSelect 端点过滤/findPath 连通断言；行为等价性由 C 段
+   * 管线仿真（改用真实 FRZ 函数）回归。 */
+  check('缺陷2b hasUnfrozenSolvablePair 委托 FRZ.findUnfrozenSolvablePair（端点过滤内聚到纯函数）',
+    /function hasUnfrozenSolvablePair\(\)\s*\{\s*return FRZ\.findUnfrozenSolvablePair\(frostState, grid, L\.findPath\) !== null;/.test(game));
+  check('缺陷2c FRZ.findUnfrozenSolvablePair 用 canSelect 过滤端点 + 注入 findPath 判定连通（冰封格占位=路径阻挡）',
+    /function findUnfrozenSolvablePair\(frostState, grid, findPath, rng\)/.test(frost) &&
+    /function findUnfrozenSolvablePair\([\s\S]*?canSelect\(frostState, r, c\)[\s\S]*?findPath\(grid, cells\[x\], cells\[y\]\)/.test(frost));
+  check('缺陷2d 死局判定不再内联 L.hasSolvablePair 短路（等价性由 FRZ 快路径 + C 段仿真回归）',
+    /function hasUnfrozenSolvablePair\(\)\s*\{[^}]*\}/.test(game) &&
+    !/function hasUnfrozenSolvablePair\(\)\s*\{[\s\S]{0,300}?L\.hasSolvablePair\(grid\)/.test(game));
 
   /* ================ C. 管线仿真（真实 Frost + link3d 模块复现判定口径） ================ */
-  // 与 game.js hasUnfrozenSolvablePair 同一算法的本地实现（模块注入版）
+  // issue #61：与 game.js hasUnfrozenSolvablePair 同口径 = 直接调用真实
+  // FRZ.findUnfrozenSolvablePair（game.js 已委托该纯函数），C1-C6 走生产代码路径。
   function hasUnfrozenSolvablePair(frostState, grid) {
-    if (!F.frozenList(frostState).length) return L.hasSolvablePair(grid);
-    var size = L.gridSize(grid);
-    var byValue = {};
-    for (var r = 1; r <= size.rows; r++) {
-      for (var c = 1; c <= size.cols; c++) {
-        var v = grid[r][c];
-        if (v > 0 && F.canSelect(frostState, r, c)) {
-          (byValue[v] = byValue[v] || []).push({ r: r, c: c });
-        }
-      }
-    }
-    var values = Object.keys(byValue);
-    for (var i = 0; i < values.length; i++) {
-      var cells = byValue[values[i]];
-      for (var x = 0; x < cells.length; x++) {
-        for (var y = x + 1; y < cells.length; y++) {
-          if (L.findPath(grid, cells[x], cells[y])) return true;
-        }
-      }
-    }
-    return false;
+    return F.findUnfrozenSolvablePair(frostState, grid, L.findPath) !== null;
   }
 
   function freezeAt(fs, r, c) {
