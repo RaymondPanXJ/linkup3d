@@ -71,8 +71,8 @@ function runChecks() {
       mismatch = '第' + b[0] + '关 hunter: ' + JSON.stringify(d.hunter);
     }
   });
-  check('LEVELS 与 TechLead 基线表逐字段一致（10 关）',
-    !mismatch && C.LEVELS.length === 10, mismatch || 'ok');
+  check('LEVELS 与 TechLead 基线表逐字段一致（11 关，issue #59 扩终章）',
+    !mismatch && C.LEVELS.length === 11, mismatch || 'ok');
 
   /* 4. 数据表整体自检通过 + 公开 API 齐备 */
   var validateOk = true;

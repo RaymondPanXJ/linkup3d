@@ -1524,6 +1524,35 @@ html[data-scene="s9"] {
   --bg-glow-3: rgba(90, 38, 8, .22);
 }
 
+/* s10「应力视界」（issue #59）：近乎纯黑 + 吸积盘橙金低饱和辉光 */
+html[data-scene="s10"] {
+  --bg-base: #050208;
+  --bg-glow-1: #3a1e08;
+  --bg-glow-2: #120a1e;
+  --bg-glow-3: rgba(58, 30, 8, .22);
+}
+
+/* ---------------- 黑洞引力扭曲视效（issue #59，纯表现层） ----------------
+ * --warp-* 由 gravity.js 逐格注入（幅度随与黑洞锚点的距离，方向两档符号）。
+ * keyframes 0% 静止 → 35% 满拉伸（迟滞感来自 ease-out 前段快后段慢）→ 100% 回弹。
+ * 形变只作用于 .tile-spin（外层），与 shake/removing 等既有 spin 层动画互不叠加冲突
+ * （warp 期间同格既有动画本就罕见）。 */
+.tile-slot.tile-warp .tile-spin {
+  animation: gravity-warp var(--warp-hold, 900ms) cubic-bezier(.22, .68, .36, 1) both;
+}
+@keyframes gravity-warp {
+  0%   { transform: skewX(0) scaleX(1) rotate(0); }
+  35%  { transform:
+           skewX(calc(var(--warp-mag, 0) * var(--warp-sign, 1) * 1deg))
+           scaleX(var(--warp-sx, 1))
+           rotate(calc(var(--warp-rot, 0) * var(--warp-sign, 1) * 1deg)); }
+  100% { transform: skewX(0) scaleX(1) rotate(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* JS 侧 mount 已 no-op；此处双保险，杜绝任何残留在途类继续动画 */
+  .tile-slot.tile-warp .tile-spin { animation: none; }
+}
+
 html[data-scene="se-easy"] {
   --bg-base: #04101c;
   --bg-glow-1: #0d3b56;

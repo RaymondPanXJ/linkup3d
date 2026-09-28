@@ -127,6 +127,17 @@
         { kind: 'orbit', count: 24, alpha: 0.6, speed: 1.1, color: '#ffd166', radius: 0.34 }
       ]
     },
+    's10': {
+      id: 's10', name: '应力视界',
+      /* 近乎纯黑底 + 吸积盘橙金辉光（低饱和）+ 冷白星点（issue #59） */
+      palette: { base: '#050208', glow1: '#3a1e08', glow2: '#120a1e',
+        star1: '#dfe6f5', star2: '#ffd9a0', star3: '#ffffff' },
+      density: 0.6,
+      elements: [
+        { kind: 'blackhole', count: 1, alpha: 0.85, speed: 0.05,
+          color: '#ff9e40', cx: 0.72, cy: 0.28, radius: 0.2 }
+      ]
+    },
     /* 无尽模式三常驻场景（复用战役风格，PR 说明选型） */
     'se-easy': {
       id: 'se-easy', name: '光带航道（无尽·简单）',
@@ -157,8 +168,8 @@
       star1: '#7fe3ff', star2: '#d5f4ff', star3: '#ffffff' };
   }
 
-  /* 关卡 id → 场景 id（与 campaign.js LEVELS 索引一一对应，0..9） */
-  var LEVEL_SCENE_IDS = ['s0', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9'];
+  /* 关卡 id → 场景 id（与 campaign.js LEVELS 索引一一对应，0..10） */
+  var LEVEL_SCENE_IDS = ['s0', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10'];
   var ENDLESS_SCENE_IDS = { easy: 'se-easy', normal: 'se-normal', hard: 'se-hard' };
 
   /* ---------------- 校验 ---------------- */

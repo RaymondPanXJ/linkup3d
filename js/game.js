@@ -521,16 +521,81 @@
     slot.style.top = ((r - 1) * cellH + cellH * 0.08) + 'px';
   }
 
-  /* 轻微跟随指针转动棋盘，强化 3D 感（issue #14：指针事件兼容 + 触摸驱动 + 降级） */
-  function applyTilt(x, y) {
-    var rx = 14 + ((y / window.innerHeight) - 0.5) * -8;
-    var ry = ((x / window.innerWidth) - 0.5) * 10;
+  /* 轻微跟随指针转动棋盘，强化 3D 感（issue #14：指针事件兼容 + 触摸驱动 + 降级）
+   * issue #59 引力场拖曳：终章黑洞关（LEVELS[i].gravity）倾角响应幅度 ×1.5，
+   * 且经 Gravity.springStep 阻尼弹簧平滑（迟滞、过冲回弹）；其余场景原逻辑不变。 */
+  var GRAVITY = window.Gravity;
+  var gravityLayer = null; // 初始化段挂载（依赖 slots/campaignIdx），此前恒 null 安全
+
+  function isGravityScene() {
+    if (campaignIdx === null) return false;
+    var lv = CP.LEVELS[campaignIdx];
+    return !!(lv && lv.gravity);
+  }
+
+  function setTiltVars(rx, ry) {
     board.style.setProperty('--rx', rx.toFixed(2) + 'deg');
     board.style.setProperty('--ry', ry.toFixed(2) + 'deg');
   }
+
+  var tiltSpring = { rx: 16, ry: 0, vrx: 0, vry: 0 };
+  var tiltTarget = { rx: 16, ry: 0 };
+  var tiltTimerId = null, tiltLastTs = 0;
+  var TILT_TICK_MS = 33; // ≈30Hz：弹簧平滑专用心跳（沿用 setInterval 模式，禁 rAF，同 onTimerTick 风格）
+
+  function tiltSpringStepTick() {
+    var now = Date.now();
+    var dt = tiltLastTs ? Math.min(100, now - tiltLastTs) : TILT_TICK_MS;
+    tiltLastTs = now;
+    var gx = GRAVITY.springStep(tiltSpring.rx, tiltTarget.rx, tiltSpring.vrx, dt, 0.04, 0.85);
+    var gy = GRAVITY.springStep(tiltSpring.ry, tiltTarget.ry, tiltSpring.vry, dt, 0.04, 0.85);
+    tiltSpring.rx = gx.value; tiltSpring.vrx = gx.vel;
+    tiltSpring.ry = gy.value; tiltSpring.vry = gy.vel;
+    setTiltVars(tiltSpring.rx, tiltSpring.ry);
+    var near = Math.abs(tiltSpring.rx - tiltTarget.rx) < 0.01 &&
+               Math.abs(tiltSpring.ry - tiltTarget.ry) < 0.01 &&
+               Math.abs(tiltSpring.vrx) < 0.01 && Math.abs(tiltSpring.vry) < 0.01;
+    if (near) cancelTiltSpring();
+  }
+  function tiltStartSpring() {
+    if (tiltTimerId === null) tiltTimerId = setInterval(tiltSpringStepTick, TILT_TICK_MS);
+  }
+  function cancelTiltSpring() {
+    if (tiltTimerId !== null) { clearInterval(tiltTimerId); tiltTimerId = null; }
+    tiltLastTs = 0;
+    tiltSpring.vrx = 0; tiltSpring.vry = 0;
+  }
+
+  function applyTilt(x, y) {
+    var rx = 14 + ((y / window.innerHeight) - 0.5) * -8;
+    var ry = ((x / window.innerWidth) - 0.5) * 10;
+    var springOn = GRAVITY && isGravityScene() &&
+      !(gravityLayer && gravityLayer.isReduced());
+    if (!springOn) {
+      cancelTiltSpring();
+      setTiltVars(rx, ry);
+      return;
+    }
+    // 引力场：以基准视角 (16°,0°) 为原点放大偏转 1.5 倍，弹簧追随
+    tiltTarget.rx = 16 + (rx - 16) * 1.5;
+    tiltTarget.ry = ry * 1.5;
+    tiltStartSpring();
+  }
   function resetTilt() {
-    board.style.setProperty('--rx', '16deg');
-    board.style.setProperty('--ry', '0deg');
+    cancelTiltSpring();
+    tiltSpring.rx = 16; tiltSpring.ry = 0;
+    tiltTarget.rx = 16; tiltTarget.ry = 0;
+    setTiltVars(16, 0);
+  }
+  /* pointerleave：引力关走弹簧回弹到默认视角（鼠标停了盘面还晃几下才停），
+   * 其余场景硬复位原逻辑。restart/exitCampaign 一律走硬复位 resetTilt。 */
+  function releaseTilt() {
+    if (GRAVITY && isGravityScene() && !(gravityLayer && gravityLayer.isReduced())) {
+      tiltTarget.rx = 16; tiltTarget.ry = 0;
+      tiltStartSpring();
+      return;
+    }
+    resetTilt();
   }
 
   var HAS_POINTER = ('onpointermove' in window) ||
@@ -541,7 +606,7 @@
       if (e.pointerType === 'touch') return; // 触摸由下方 touchmove 处理
       applyTilt(e.clientX, e.clientY);
     });
-    stage.addEventListener('pointerleave', resetTilt);
+    stage.addEventListener('pointerleave', releaseTilt);
   }
   if (typeof window.TouchEvent === 'function') {
     // 触摸驱动倾斜：非 passive 以便 preventDefault 阻止页面滚动误触
@@ -551,8 +616,8 @@
       e.preventDefault();
       applyTilt(t.clientX, t.clientY);
     }, { passive: false });
-    stage.addEventListener('touchend', resetTilt);
-    stage.addEventListener('touchcancel', resetTilt);
+    stage.addEventListener('touchend', releaseTilt);
+    stage.addEventListener('touchcancel', releaseTilt);
   }
   /* 无 pointer 事件且无 touch 事件的旧设备：不注册任何倾斜监听，退化为固定视角 */
 
@@ -1017,6 +1082,7 @@
     paused = false;
     lastRoundTs = 0;
     hintsLeft = Hint.HINTS_PER_GAME;
+    if (gravityLayer) { gravityLayer.reset(); resetTilt(); } // #59 清在途扭曲并复位倾角
     clearHintHighlight();
     renderHintBtn();
     bestStat.classList.remove('record');
@@ -1322,6 +1388,7 @@
   function exitCampaign() {
     if (campaignIdx === null) return;
     campaignIdx = null;
+    if (gravityLayer) { gravityLayer.reset(); resetTilt(); } // #59 退局清引力视效
     setCampaignControlsDisabled(false);
     campaignBtn.setAttribute('aria-pressed', 'false');
     timeLabelEl.textContent = mode === TM.MODES.timed ? '倒计时' : '用时';
@@ -1615,6 +1682,19 @@
 
   /* ---------------- 动态星空背景 + 场景系统初始化（issue #53） ---------------- */
   initSceneSystem();
+
+  /* ---------------- 黑洞引力视效层初始化（issue #59） ----------------
+   * 常驻单心跳：仅战役终章（LEVELS[10].gravity）动作，非引力关心跳空转；
+   * slots 为共享映射引用，建盘重建后仍有效。reduced-motion 下全 no-op。 */
+  if (GRAVITY) {
+    gravityLayer = GRAVITY.mount(board, {
+      slots: slots,
+      getLevel: function () {
+        return campaignIdx !== null ? (CP.LEVELS[campaignIdx] || null) : null;
+      }
+    });
+    gravityLayer.start();
+  }
 
   /* ---------------- 音频自诊断钩子（issue #45，供 TechLead 真机插桩，只读） ---------------- */
   window.__audioDiag = function () {
