@@ -63,6 +63,8 @@
   var pauseBtn = document.getElementById('pause');
   var pauseScreen = document.getElementById('pauseScreen');
   var statTime = document.getElementById('statTime');
+  var statElapsed = document.getElementById('statElapsed');
+  var elapsedEl = document.getElementById('elapsed');
   var rankBtn = document.getElementById('rank');
   var rankOverlay = document.getElementById('rankOverlay');
   var rankTabs = document.getElementById('rankTabs');
@@ -918,6 +920,11 @@
 
   function renderTime() {
     timeEl.textContent = timeLabel();
+    // issue #63：HUD 常驻「已用」计时（mm:ss）。数据源为 tState.elapsedSec，
+    // 暂停冻结/恢复连续由 timer.js 纯函数保证（performance.now 差值，抗节流）。
+    // 无尽模式 #statTime 本身即正计时，隐藏本格避免重复显示。
+    elapsedEl.textContent = fmt(tState.elapsedSec);
+    statElapsed.hidden = mode !== TM.MODES.timed;
     statTime.classList.toggle('warning', mode === TM.MODES.timed &&
       !paused && tState.running && tState.warning);
   }

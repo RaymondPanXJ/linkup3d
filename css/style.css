@@ -382,6 +382,9 @@ button:focus-visible,
 .stat.best .value { color: var(--link); }
 .stat.best.record .value { color: var(--accent); animation: record-glow 1.2s ease infinite; }
 @keyframes record-glow { 50% { text-shadow: 0 0 16px var(--accent-glow); transform: scale(1.12); } }
+/* issue #63：HUD「已用」计时（限时模式显示；.stat 的 flex 会覆盖 UA [hidden]，需显式收起） */
+.stat.elapsed .value { color: var(--text-dim); }
+#statElapsed[hidden] { display: none; }
 
 button#restart, button#again {
   font: inherit;
