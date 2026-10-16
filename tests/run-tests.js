@@ -38,6 +38,7 @@ var htmlPathChecks = require('./html-paths-static-check.js');
 var fireTests = require('./fire.define.js');
 var fireChecks = require('./fire-static-check.js');
 var fireWiringChecks = require('./fire-wiring-static-check.js');
+var audioUiChecks = require('./audio-ui-static-check.js');
 var simulationTests = require('./level-simulation.define.js');
 var fireSimulationTests = require('./fire-simulation.define.js');
 
@@ -52,6 +53,7 @@ var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   fxChecks.runChecks(), ufoChecks.runChecks(), campaignSceneChecks.runChecks(),
   gravityChecks.runChecks(), elapsedChecks.runChecks(), htmlPathChecks.runChecks(),
   fireTests.runAll(), fireChecks.runChecks(), fireWiringChecks.runChecks(),
+  audioUiChecks.runChecks(),
   simulationTests.runAll(),
   fireSimulationTests.runAll());
 var pass = 0;

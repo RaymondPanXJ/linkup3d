@@ -312,83 +312,11 @@
     };
   })();
 
-  function renderMuteBtn() {
-    muteBtn.textContent = SFX.isMuted() ? '🔇' : '🔊';
-    muteBtn.setAttribute('aria-pressed', SFX.isMuted() ? 'true' : 'false');
-    muteBtn.setAttribute('aria-label', SFX.isMuted() ? '取消静音' : '静音');
-  }
-  muteBtn.addEventListener('click', function () {
-    SFX.setMuted(!SFX.isMuted());
-    renderMuteBtn();
-  });
-  renderMuteBtn();
+  /* ---------------- 音频 UI（issue #74 刀1：原静音/音乐按钮与首手势重试监听簇
+   * 整迁至 js/audio-ui.js，本行为同签名接线点；行为零变化的纯重构）
+   * 勿在此行前插语句：frost/fire 接线静态断言对下方事件分支有字符窗口锁。 ---------------- */
+  var AudioUI = window.AudioUI.init({ muteBtn: muteBtn, musicBtn: musicBtn, SFX: SFX });
 
-  /* ---------------- 背景音乐（WebAudio 程序化合成，独立于 SFX 静音，issue #10） ---------------- */
-  var MUSIC_KEY = 'linkup3d.music';
-  var MU = window.Music;
-  var musicPlayer = MU.createPlayer();
-  var musicOn = false;
-  try { musicOn = localStorage.getItem(MUSIC_KEY) !== '0'; } catch (e) { /* 无存储环境默认开 */ }
-
-  function renderMusicBtn() {
-    musicBtn.textContent = musicOn ? '♪' : '♩';
-    musicBtn.classList.toggle('on', musicOn);
-    musicBtn.setAttribute('aria-pressed', musicOn ? 'true' : 'false');
-    musicBtn.setAttribute('aria-label', musicOn ? '关闭背景音乐' : '开启背景音乐');
-  }
-
-  // 浏览器自动播放策略：AudioContext 需在用户手势中才能恢复运行。
-  // issue #45 根因2：once 一次性监听错过首手势窗口后整会话不再重试——
-  // 改为持续监听，直到真正播放（isRunning）或偏好关闭（!musicOn）才解除。
-  function ensureMusicStarted() {
-    if (!musicOn || musicPlayer.isRunning()) return;
-    musicPlayer.start();
-  }
-
-  musicBtn.addEventListener('click', function () {
-    musicOn = !musicOn;
-    try { localStorage.setItem(MUSIC_KEY, musicOn ? '1' : '0'); } catch (e) { /* 忽略 */ }
-    if (musicOn) {
-      // issue #47 追加：关 ♪ 时 onFirstGesture 的 !musicOn 分支已移除监听——
-      // 切回必须重新武装，否则重试安全网永久失效（start 复用 #45 异步安全路径）。
-      addMusicGestureListeners();
-      ensureMusicStarted();
-    } else {
-      musicPlayer.stop();
-    }
-    renderMusicBtn();
-  });
-
-  var gestureEvents = ['pointerdown', 'touchstart', 'keydown'];
-  var musicRetryEvents = gestureEvents.concat('click');
-  var musicGestureActive = false;
-  function addMusicGestureListeners() {
-    if (musicGestureActive) return;
-    musicGestureActive = true;
-    musicRetryEvents.forEach(function (ev) {
-      window.addEventListener(ev, onFirstGesture, { passive: true });
-    });
-  }
-  function removeMusicGestureListeners() {
-    musicGestureActive = false;
-    musicRetryEvents.forEach(function (ev) {
-      window.removeEventListener(ev, onFirstGesture);
-    });
-  }
-  function onFirstGesture() {
-    ensureMusicStarted();
-    // start() 可能仍在等 resume 决议；isRunning() 未置真前保留监听，下次手势继续重试。
-    if (musicPlayer.isRunning() || !musicOn) removeMusicGestureListeners();
-  }
-  addMusicGestureListeners();
-
-  renderMusicBtn();
-  // issue #47：开机无手势时不得启动——无激活上下文里 new AudioContext() 创建即挂起
-  // 并触发浏览器告警。仅当已有激活（如 bfcache 恢复后仍保持激活）才立即启动，
-  // 否则交给上方手势持续重试监听，ensure() 首次创建将发生在手势内，告警根除。
-  if (musicOn && navigator.userActivation && navigator.userActivation.isActive === true) {
-    ensureMusicStarted();
-  }
 
   /* ---------------- 状态 ---------------- */
   var grid = null;          // link3d 扩展网格（0 为边框）
@@ -1840,12 +1768,12 @@
 
   /* ---------------- 音频自诊断钩子（issue #45，供 TechLead 真机插桩，只读） ---------------- */
   window.__audioDiag = function () {
-    var s = SFX.diag(), m = musicPlayer.diag();
+    var s = SFX.diag(), m = AudioUI.diag();
     return {
       userActive: navigator.userActivation ? navigator.userActivation.hasBeenActive : null,
       sfx: { ctxState: s.ctxState, currentTime: s.currentTime },
       music: { running: m.running, ctxState: m.ctxState, currentTime: m.currentTime,
-               musicOn: musicOn, listenersActive: musicGestureActive }
+               musicOn: m.musicOn, listenersActive: m.listenersActive }
     };
   };
 })();
