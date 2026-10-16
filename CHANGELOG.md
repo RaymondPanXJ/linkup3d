@@ -5,6 +5,8 @@
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-10-16
+
 ### Fixed
 
 - **裂纹态视觉同步回归测试**（issue #52，PR #50 二轮复核）：新增运行时仿真 `tests/frost-crack-runtime-check.js`——Node 宿主垫片 + 虚拟时钟按 index.html 同序加载真实 `js/*.js`，在 L3（无巡猎者预冻关）端到端断言 250ms 心跳独立于 enemyState 持续同步、裂冰瞬间 `.cracked` 立即上屏并跨心跳持久、破裂清态。该套件在 PR #50 HEAD（ed5ea6a）全绿、在修复前代码（031191d）必红，锁定心跳拆分与立即同步两处修复不被回退；已注册进 `tests/run-tests.js`。
