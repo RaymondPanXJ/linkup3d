@@ -39,6 +39,7 @@ var fireTests = require('./fire.define.js');
 var fireChecks = require('./fire-static-check.js');
 var fireWiringChecks = require('./fire-wiring-static-check.js');
 var simulationTests = require('./level-simulation.define.js');
+var fireSimulationTests = require('./fire-simulation.define.js');
 
 var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   spaceTests.runAll(), timerTests.runAll(), hintTests.runAll(), uiChecks.runChecks(),
@@ -51,7 +52,8 @@ var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   fxChecks.runChecks(), ufoChecks.runChecks(), campaignSceneChecks.runChecks(),
   gravityChecks.runChecks(), elapsedChecks.runChecks(), htmlPathChecks.runChecks(),
   fireTests.runAll(), fireChecks.runChecks(), fireWiringChecks.runChecks(),
-  simulationTests.runAll());
+  simulationTests.runAll(),
+  fireSimulationTests.runAll());
 var pass = 0;
 
 function report(all) {
