@@ -446,6 +446,7 @@
    * issue #59 引力场拖曳：终章黑洞关（LEVELS[i].gravity）倾角响应幅度 ×1.5，
    * 且经 Gravity.springStep 阻尼弹簧平滑（迟滞、过冲回弹）；其余场景原逻辑不变。 */
   var GRAVITY = window.Gravity;
+  var Tilt = window.Tilt; // issue #74 刀3：倾斜/弹簧纯数学层（js/tilt.js），本层只做 DOM 适配
   var gravityLayer = null; // 初始化段挂载（依赖 slots/campaignIdx），此前恒 null 安全
 
   function isGravityScene() {
@@ -465,18 +466,17 @@
   var TILT_TICK_MS = 33; // ≈30Hz：弹簧平滑专用心跳（沿用 setInterval 模式，禁 rAF，同 onTimerTick 风格）
 
   function tiltSpringStepTick() {
+    // issue #74 刀3：dt 钳制/双轴步进/速度回写/收敛判定编排迁 js/tilt.js stepTick；
+    // 积分器经包装注入 GRAVITY.springStep（调用点与手感常量 0.04/0.85 逐字保留）
     var now = Date.now();
-    var dt = tiltLastTs ? Math.min(100, now - tiltLastTs) : TILT_TICK_MS;
-    tiltLastTs = now;
-    var gx = GRAVITY.springStep(tiltSpring.rx, tiltTarget.rx, tiltSpring.vrx, dt, 0.04, 0.85);
-    var gy = GRAVITY.springStep(tiltSpring.ry, tiltTarget.ry, tiltSpring.vry, dt, 0.04, 0.85);
-    tiltSpring.rx = gx.value; tiltSpring.vrx = gx.vel;
-    tiltSpring.ry = gy.value; tiltSpring.vry = gy.vel;
+    var r = Tilt.stepTick(tiltSpring, tiltTarget, function (cur, tgt, vel, dtMs) {
+      return GRAVITY.springStep(cur, tgt, vel, dtMs, 0.04, 0.85);
+    }, now, tiltLastTs, TILT_TICK_MS);
+    tiltSpring.rx = r.spring.rx; tiltSpring.vrx = r.spring.vrx;
+    tiltSpring.ry = r.spring.ry; tiltSpring.vry = r.spring.vry;
+    tiltLastTs = r.lastTs;
     setTiltVars(tiltSpring.rx, tiltSpring.ry);
-    var near = Math.abs(tiltSpring.rx - tiltTarget.rx) < 0.01 &&
-               Math.abs(tiltSpring.ry - tiltTarget.ry) < 0.01 &&
-               Math.abs(tiltSpring.vrx) < 0.01 && Math.abs(tiltSpring.vry) < 0.01;
-    if (near) cancelTiltSpring();
+    if (r.near) cancelTiltSpring();
   }
   function tiltStartSpring() {
     if (tiltTimerId === null) tiltTimerId = setInterval(tiltSpringStepTick, TILT_TICK_MS);
@@ -488,18 +488,19 @@
   }
 
   function applyTilt(x, y) {
-    var rx = 14 + ((y / window.innerHeight) - 0.5) * -8;
-    var ry = ((x / window.innerWidth) - 0.5) * 10;
+    // issue #74 刀3：坐标→倾角映射与引力偏转公式迁 js/tilt.js（逐字等值）
+    var p = Tilt.pointerToTilt(x, y, window.innerWidth, window.innerHeight);
     var springOn = GRAVITY && isGravityScene() &&
       !(gravityLayer && gravityLayer.isReduced());
     if (!springOn) {
       cancelTiltSpring();
-      setTiltVars(rx, ry);
+      setTiltVars(p.rx, p.ry);
       return;
     }
     // 引力场：以基准视角 (16°,0°) 为原点放大偏转 1.5 倍，弹簧追随
-    tiltTarget.rx = 16 + (rx - 16) * 1.5;
-    tiltTarget.ry = ry * 1.5;
+    var t = Tilt.biasTarget(p.rx, p.ry, 1.5);
+    tiltTarget.rx = t.rx;
+    tiltTarget.ry = t.ry;
     tiltStartSpring();
   }
   function resetTilt() {

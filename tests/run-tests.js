@@ -39,6 +39,8 @@ var fireTests = require('./fire.define.js');
 var fireChecks = require('./fire-static-check.js');
 var fireWiringChecks = require('./fire-wiring-static-check.js');
 var audioUiChecks = require('./audio-ui-static-check.js');
+var tiltTests = require('./tilt.define.js');
+var tiltChecks = require('./tilt-static-check.js');
 var simulationTests = require('./level-simulation.define.js');
 var fireSimulationTests = require('./fire-simulation.define.js');
 var scenesChecks = require('./scenes-static-check.js');
@@ -55,6 +57,7 @@ var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   gravityChecks.runChecks(), elapsedChecks.runChecks(), htmlPathChecks.runChecks(),
   fireTests.runAll(), fireChecks.runChecks(), fireWiringChecks.runChecks(),
   audioUiChecks.runChecks(),
+  tiltTests.runAll(), tiltChecks.runChecks(),
   simulationTests.runAll(),
   fireSimulationTests.runAll(),
   scenesChecks.runChecks());
