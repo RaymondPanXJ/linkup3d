@@ -349,43 +349,19 @@
   var campaignIdx = null;
   var campaignData = SV.load(typeof localStorage !== 'undefined' ? localStorage : null);
 
-  /* ---------------- 战役场景系统接线（issue #53） ----------------
-   * 进关/退局/切模式切难度统一走 applyScene()：星空叠加走 Stars 句柄
-   * setScene（stars.js 内部 blend ≥1s 渐变），CSS 侧同步 html[data-scene]
-   * 覆盖背景辉光变量，HUD 场景名走 renderHud。无 Scene/Stars 时全部静默降级。 */
-  var SC = (function () {
-    try { return window.Scene || null; } catch (e) { return null; }
-  })();
-  var sceneNameEl = document.getElementById('sceneName');
-  var starsHandle = null;
-
-  function currentSceneId() {
-    if (!SC) return null;
-    return SC.hudSceneIdFor(
-      campaignIdx !== null ? 'campaign' : mode,
-      campaignIdx !== null ? campaignIdx : difficulty);
-  }
-
-  function applyScene() {
-    if (!SC) return;
-    var scene = SC.byId(currentSceneId()) || SC.SCENES[SC.DEFAULT_SCENE_ID];
-    try {
-      document.documentElement.setAttribute('data-scene', scene.id);
-    } catch (e) { /* 无 DOM 环境忽略 */ }
-    if (starsHandle) starsHandle.setScene(scene);
-    renderSceneName();
-  }
-
-  function renderSceneName() {
-    if (!sceneNameEl || !SC) return;
-    var scene = SC.byId(currentSceneId());
-    sceneNameEl.textContent = scene ? scene.name : '—';
-  }
-
-  function initSceneSystem() {
-    starsHandle = window.Stars.mount(document.getElementById('starfield'));
-    applyScene();
-  }
+  /* ---------------- 战役场景接线（issue #53；issue #74 刀2 迁出） ----------------
+   * 场景切换统一走 applyScene()；接线实现在 js/scenes.js（window.Scenes.init 注入，
+   * 模块形态镜像刀1 js/audio-ui.js）。campaignIdx/mode/difficulty 三个本文件可变
+   * 状态一律经只读 getter 注入（scenes.js 不读本文件闭包变量，工单纪律）；
+   * DOM 在顶层抓取后传入。无 Scene/Stars 时全部静默降级（#53 语义逐字保留）。 */
+  var SceneUI = window.Scenes.init({
+    sceneNameEl: document.getElementById('sceneName'),
+    getCampaignIdx: function () { return campaignIdx; },
+    getMode: function () { return mode; },
+    getDifficulty: function () { return difficulty; }
+  });
+  var applyScene = SceneUI.applyScene;
+  var initSceneSystem = SceneUI.initSceneSystem;
 
   function nowMs() {
     return (window.performance && window.performance.now)

@@ -25,7 +25,7 @@ var readUtf8 = require('./read-utf8.js');
 var path = require('path');
 
 var ROOT = path.join(__dirname, '..');
-var SCRIPT_ORDER = ['link3d', 'combo', 'timer', 'ranking', 'music', 'audio-ui', 'stars', 'mobile',
+var SCRIPT_ORDER = ['link3d', 'combo', 'timer', 'ranking', 'music', 'audio-ui', 'stars', 'scenes', 'mobile',
   'hint', 'tutorial', 'frost', 'enemy', 'fire', 'campaign', 'save', 'ufo', 'fx', 'game'];
 var EMOJIS = ['🍎', '🍇', '🍋', '🍉', '🚀', '🎲', '🐱', '🐼', '⚡', '🌙', '🍄', '🎈',
   '🍒', '🥕', '🌵', '🎸', '⚽', '🏀', '🐸', '🦊', '🍭', '🎯', '🔔', '🌈'];

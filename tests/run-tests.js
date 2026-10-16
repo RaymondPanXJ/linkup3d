@@ -41,6 +41,7 @@ var fireWiringChecks = require('./fire-wiring-static-check.js');
 var audioUiChecks = require('./audio-ui-static-check.js');
 var simulationTests = require('./level-simulation.define.js');
 var fireSimulationTests = require('./fire-simulation.define.js');
+var scenesChecks = require('./scenes-static-check.js');
 
 var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   spaceTests.runAll(), timerTests.runAll(), hintTests.runAll(), uiChecks.runChecks(),
@@ -55,7 +56,8 @@ var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   fireTests.runAll(), fireChecks.runChecks(), fireWiringChecks.runChecks(),
   audioUiChecks.runChecks(),
   simulationTests.runAll(),
-  fireSimulationTests.runAll());
+  fireSimulationTests.runAll(),
+  scenesChecks.runChecks());
 var pass = 0;
 
 function report(all) {
