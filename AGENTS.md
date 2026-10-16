@@ -16,3 +16,9 @@
 - 不碰 `.github/`。产物文件写完 `chmod 644`。
 - 认领/返工/复位全流程纪律见已安装技能 `inbox-workflow`，以其为准。
 
+### 提交署名（四方Hermes队，2026-10-16 经 Owner 拍板）
+
+- git 身份：各人在自己克隆里 `git config user.name "<代号> (四方Hermes队)"`、`user.email "<代号>@four-hermes.local"`（`.local` 域不可注册验证，无人能冒充认领）。
+- PR 署名：每个 PR 的**正文末尾**单独一行 `Co-authored-by: <代号> (四方Hermes队) <代号>@four-hermes.local`——squash 合并会保留 trailer，署名进永久历史。TechLead 合并审过的 PR 时追加共同署名 caduceus。
+- 若要上 GitHub 贡献榜（不止 commit trailer）：需 Owner 注册 bot 账号并用其 noreply 邮箱，待拍板。
+
