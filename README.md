@@ -39,7 +39,7 @@ open index.html          # macOS / Windows 双击即可
 # 方式二：在线玩
 # https://raymondpanxj.github.io/linkup3d/
 
-# 方式三：跑测试（401 项，Node ≥ 12，无依赖）
+# 方式三：跑测试（项数以 run-tests.js 实跑为准，当前 599 项；Node ≥ 12，无依赖）
 node tests/run-tests.js
 ```
 
@@ -64,7 +64,7 @@ node tests/run-tests.js
 
 外围：`js/game.js` 为主循环接线层（组合以上模块 + DOM/存储副作用）；`js/stars.js` / `js/music.js` 为星空背景与 WebAudio 程序化音效/BGM；渲染层为 `index.html` + `css/style.css`。
 
-测试：`node tests/run-tests.js` **共 401 项**——算法/纯函数用例、无浏览器静态接线断言（`tests/*-static-check.js`，模式参考 `tests/space-static-check.js`），以及逐关确定性仿真套件（每关 10 局 × 10 关，死局必须为 0，同种子重放逐字节一致）。浏览器端可打开 `tests.html`。
+测试：`node tests/run-tests.js` **共 599 项**（项数以 run-tests.js 实跑为准）——算法/纯函数用例、无浏览器静态接线断言（`tests/*-static-check.js`，模式参考 `tests/space-static-check.js`），以及逐关确定性仿真套件（每关 10 局 × 10 关，死局必须为 0，同种子重放逐字节一致）。浏览器端可打开 `tests.html`。
 
 ## 这个项目是怎么造出来的（公开幕后）
 
