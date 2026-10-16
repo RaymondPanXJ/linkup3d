@@ -14,7 +14,8 @@ function runChecks() {
   var html = readUtf8(path.join(root, 'index.html'));
   var css = readUtf8(path.join(root, 'css', 'style.css'));
   var game = readUtf8(path.join(root, 'js', 'game.js')) + '\n'
-    + readUtf8(path.join(root, 'js', 'audio-ui.js')); // issue #74 刀1：音频簇已迁 audio-ui.js，重锚目标（断言本体零触碰）
+    + readUtf8(path.join(root, 'js', 'audio-ui.js')) + '\n'
+    + readUtf8(path.join(root, 'js', 'scenes.js')); // issue #74 刀1/刀2：音频簇已迁 audio-ui.js、场景簇已迁 scenes.js，重锚目标（断言本体零触碰）
   var music = readUtf8(path.join(root, 'js', 'music.js'));
   var stars = readUtf8(path.join(root, 'js', 'stars.js'));
 

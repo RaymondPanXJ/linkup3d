@@ -14,7 +14,8 @@ function runChecks() {
   var root = path.join(__dirname, '..');
   var html = readUtf8(path.join(root, 'index.html'));
   var css = readUtf8(path.join(root, 'css', 'style.css'));
-  var game = readUtf8(path.join(root, 'js', 'game.js'));
+  var game = readUtf8(path.join(root, 'js', 'game.js')) + '\n'
+    + readUtf8(path.join(root, 'js', 'scenes.js')); // issue #74 刀2：场景接线簇已迁 scenes.js，重锚目标（断言本体零触碰）
   var stars = readUtf8(path.join(root, 'js', 'stars.js'));
 
   var results = [];
