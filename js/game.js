@@ -16,6 +16,7 @@
   var Hint = window.Hint;
   var FRZ = window.Frost;   // js/frost.js 冻冰状态层（issue #27）
   var ENM = window.Enemy;   // js/enemy.js 巡猎者大脑（issue #29）
+  var FIR = window.Fire;    // js/fire.js 熔火状态层（issue #65 T2）
   var CP = window.Campaign;      // js/campaign.js 关卡数据/星级纯函数（issue #33）
   var SV = window.CampaignSave;  // js/save.js 战役存档（storage 注入式，issue #33）
 
@@ -287,6 +288,20 @@
       warn: function () {
         play(function (c, t) {
           tone(1760, t, 0.035, 'square', 0.05);
+        });
+      },
+      // 熔岩喷发（issue #65 T2）：低频上行轰鸣（镜像 freeze 的“事件音”定位）
+      ignite: function () {
+        play(function (c, t) {
+          tone(110, t, 0.26, 'triangle', 0.13, 165);
+          tone(82.4, t + 0.04, 0.3, 'sine', 0.09, 62);
+        });
+      },
+      // 蒸汽扑灭（issue #65 T2）：高频下行嘶声，与 thaw 三连琶音区分
+      quench: function () {
+        play(function (c, t) {
+          tone(1400, t, 0.18, 'sine', 0.07, 320);
+          tone(700, t + 0.03, 0.14, 'triangle', 0.05, 240);
         });
       },
       // 只读诊断（issue #45：供 window.__audioDiag；不创建 ctx，避免非手势期实例化）
@@ -672,6 +687,17 @@
   /* ---------------- 交互 ---------------- */
   function onTileClick(r, c) {
     if (busy || paused || !running || !grid[r][c]) return;
+    // 熔岩格守卫（issue #65 T2，镜像冰封守卫）：燃烧格不可选中，抖动反馈 + toast
+    if (!FIR.canSelect(fireState, r, c)) {
+      var sf = slots[r + ',' + c];
+      if (sf) {
+        sf.classList.remove('shake');
+        void sf.offsetWidth;
+        sf.classList.add('shake');
+      }
+      showToast('这颗牌被熔岩吞没了');
+      return;
+    }
     // 冰冻格守卫（issue #31）：不可选中，抖动反馈 + toast
     if (!FRZ.canSelect(frostState, r, c)) {
       var s = slots[r + ',' + c];
@@ -701,6 +727,12 @@
 
     if (grid[a.r][a.c] !== grid[b.r][b.c]) {
       rejectPair(ta, tb);
+      return;
+    }
+    // 连通判定入口把关（issue #65 T2，镜像 issue #31）：燃烧格不得作为端点
+    if (!FIR.canMatch(fireState, a.r, a.c, b.r, b.c)) {
+      rejectPair(ta, tb);
+      showToast('这颗牌被熔岩吞没了');
       return;
     }
     // 连通判定入口把关（issue #31）：冰冻格不得作为端点
@@ -763,6 +795,15 @@
     }
     // 缺陷1 返工（issue #51）：裂冰后立即同步视觉，不等 ≤250ms 心跳（即时反馈）
     syncFrostVisuals(Date.now());
+
+    // 消除灭火联动（issue #65 规则4，镜像 frost 规则2）：被消两牌的正交邻燃烧格各扑灭一次；
+    // 这是玩家对抗火势蔓延的唯一手段（ROADMAP#2「不消除则火势扩张」的反面）。
+    var quenchRes = FIR.quenchAround(fireState, a.r, a.c, b.r, b.c);
+    fireState = quenchRes.state;
+    if (quenchRes.quenched.length) {
+      SFX.quench();
+      quenchRes.quenched.forEach(function (p) { playQuench(p.r, p.c); });
+    }
 
     var now = Date.now();
     var gap = lastMatchAt ? now - lastMatchAt : Infinity;
@@ -851,6 +892,12 @@
     lastWarnSoundAt = 0;
     showToast('搅动星尘,寒冰消融');
     L.shuffleGrid(grid);
+    // 熔火同理（issue #65 T2，镜像 #39 裁决1）：燃烧格同为可解性判定的占位障碍，
+    // 不清则「洗牌后必有解」硬保证被打破。全场灭火不另发 toast（既有 toast 文案锁定）。
+    // 位置必须在 shuffleGrid 之后：#39 对 doShuffle→解冻类/toast/shuffleGrid 有
+    // 600/800 字符窗口锁定，本段不得前插。
+    Object.keys(slots).forEach(function (k) { slots[k].classList.remove('tile-burning'); });
+    fireState = FIR.create(); fireTurn = 0; lastFireAt = 0;
     // 洗牌只换图案不换格子位置，frost 坐标口径不变（issue #31 接线要求 1 的决定）
     var myGen = gen;
     Object.keys(slots).forEach(function (k) {
@@ -1070,6 +1117,10 @@
     paused = false;
     lastRoundTs = 0;
     hintsLeft = Hint.HINTS_PER_GAME;
+    // #65 T2 熔岩口清场。FIR.create 无外部依赖，无需 typeof 兜底（接线段随后二次
+    // 初始化，殊途同归）；位置在 hintsLeft 之后：hint-static-check 对 restart()→
+    // hintsLeft 有 400 字符窗口锁定，勿在其前插入新语句。
+    fireState = FIR.create(); fireTurn = 0; lastFireAt = 0;
     if (gravityLayer) { gravityLayer.reset(); resetTilt(); } // #59 清在途扭曲并复位倾角
     clearHintHighlight();
     renderHintBtn();
@@ -1222,6 +1273,101 @@
 
   setInterval(onHunterTick, 250); // 沿用现有 setInterval 心跳模式（同 onTimerTick）
 
+  /* ---------------- 熔岩口接线（issue #65，T2） ----------------
+   * fireState 为 js/fire.js 的纯函数状态；本层职责（模式全部镜像 frost 接线）：
+   *   - 心跳驱动：独立 setInterval 250ms，running/paused 门控，每 FIRE_SPREAD_MS
+   *     推进一个蔓延回合（fire.js 规则2），每 FIRE_IGNITE_EVERY 回合尝试熔岩口喷发
+   *   - 点击/匹配守卫见 onTileClick；消除灭火联动见 eliminate；类名同步见 syncFireVisuals
+   *   - 取舍记录（issue #65）：与冰封侧 issue #31「不回滚」口径不同，本层 spread/ignite
+   *     双保险——必须经「冰封=-1」工作格上的 FIR.isBoardSolvable 复核通过才落地，
+   *     使 LEVEL_GUIDE §2.1「蔓延后必可解」平推到火（T3 逐关仿真硬断言口径）。
+   */
+  var fireState = FIR.create();   // 熔火状态（1-based 内容格坐标，同 frost；洗牌即全场熄灭）
+  var fireTurn = 0;               // 蔓延回合计数（心跳推进，注入 fire.js 的 at 字段）
+  var lastFireAt = 0;             // 上一个蔓延回合时刻
+  var FIRE_SPREAD_MS = 12000;     // 每 12s 一个蔓延回合（垂直切片口径，T3 后可调）
+  var FIRE_IGNITE_EVERY = 2;      // 每 2 回合尝试一次熔岩口喷发
+
+  // 工作格：冰封/裂纹格置 -1——火侧可解性判定与火感知对搜索中，冰封格同为
+  // 路径障碍且不可作端点（与 frost.isBoardSolvable 对 frozen 的 -1 处理同口径）
+  function frostBlockedGrid() {
+    var work = grid.map(function (row) { return row.slice(); });
+    FRZ.frozenList(frostState).forEach(function (p) {
+      if (p.r >= 1 && p.r < work.length - 1 && p.c >= 1 && p.c < work[0].length - 1) work[p.r][p.c] = -1;
+    });
+    return work;
+  }
+
+  // 火+冰封联合可解判定（hasUnfrozenSolvablePair 的加强口径，#65 T2 硬不变量用）
+  function hasFireSafeSolvablePair() {
+    return FIR.findUnburnedSolvablePair(fireState, frostBlockedGrid(), L.findPath) !== null;
+  }
+
+  // 扑灭瞬间蒸汽团（一次性动画，gen 守卫防跨局残留，镜像 playThaw）
+  function playQuench(r, c) {
+    var s = slots[r + ',' + c];
+    if (!s) return;
+    s.classList.remove('tile-quenching');
+    void s.offsetWidth; // 重置动画
+    s.classList.add('tile-quenching');
+    var myGen = gen;
+    setTimeout(function () { if (myGen === gen) s.classList.remove('tile-quenching'); }, 560);
+  }
+
+  function syncFireVisuals() {
+    var burning = {};
+    FIR.burningList(fireState).forEach(function (p) { burning[p.r + ',' + p.c] = true; });
+    Object.keys(slots).forEach(function (k) {
+      slots[k].classList.toggle('tile-burning', !!burning[k]);
+    });
+  }
+
+  function onFireTick() {
+    // 启动早期 restart() 早于本段初始化（同 frostState 的 typeof 兜底）
+    if (typeof fireState === 'undefined' || !grid) return;
+    if (!running || paused) return;
+    var now = Date.now();
+    if (!lastFireAt) { lastFireAt = now; return; } // 新局第一 tick 仅校准基准，开局不喷火
+    if (now - lastFireAt < FIRE_SPREAD_MS) return;
+    lastFireAt = now;
+    fireTurn++;
+    var work = frostBlockedGrid();
+    var next = fireState;
+    var erupted = false;
+    // 规则2+3：推进一个蔓延回合；不可解则整回合回滚（取舍记录见段头）
+    var out = FIR.spread(next, work, Math.random, fireTurn);
+    if (out.applied && FIR.isBoardSolvable(out.state, work, L)) {
+      next = out.state;
+      erupted = true;
+      SFX.ignite();
+      out.burned.forEach(function (p) { setSlotClass(p.r, p.c, 'tile-burning', true); });
+    }
+    // 熔岩口喷发：随机引燃一个未燃未冻占位格（同判回滚；applied=false 上限/竞态静默）
+    if (fireTurn % FIRE_IGNITE_EVERY === 0 && FIR.countBurning(next) < FIR.MAX_BURNING) {
+      var cands = [];
+      Object.keys(slots).forEach(function (k) {
+        var p = k.split(',');
+        if (grid[+p[0]][+p[1]] > 0 && FIR.canSelect(next, +p[0], +p[1]) &&
+            FRZ.canSelect(frostState, +p[0], +p[1])) cands.push({ r: +p[0], c: +p[1] });
+      });
+      if (cands.length) {
+        var q = cands[Math.floor(Math.random() * cands.length)];
+        var ig = FIR.ignite(next, q.r, q.c, fireTurn);
+        if (ig.applied && FIR.isBoardSolvable(ig.state, work, L)) {
+          next = ig.state;
+          if (!erupted) SFX.ignite();
+          setSlotClass(q.r, q.c, 'tile-burning', true);
+        }
+      }
+    }
+    fireState = next;
+    syncFireVisuals();
+    // 兜底双保险：心跳发现联合不可解（按上双判不应发生）立即走既有洗牌复位
+    if (!hasFireSafeSolvablePair() || !hasUnfrozenSolvablePair()) announceShuffle();
+  }
+
+  setInterval(onFireTick, 250); // 沿用现有 setInterval 心跳模式（同 onHunterTick）
+
 
   /* ---------------- 战役：星图 / 关卡装载 / 结算存档（issue #33 T5） ----------------
    * 状态机：自由模式 ⇄ 战役局（campaignIdx 非空）。星图节点点击（仅解锁关）→
@@ -1365,6 +1511,7 @@
       enemyState = null;
     }
     lastWarnSoundAt = 0;
+    fireState = FIR.create(); fireTurn = 0; lastFireAt = 0; // #65 T2 进关清熔岩口
     syncFrostVisuals(Date.now());
     finalTitleEl.textContent = '恭喜通关';
     renderTime();
@@ -1639,6 +1786,11 @@
     // issue #61：提示必须走冰封感知口径（与死局判定 hasUnfrozenSolvablePair 同一函数），
     // 否则高亮的对子玩家点不了（冰封/裂纹端点）或连线穿过冰封格误导路径描述。
     var pair = FRZ.findUnfrozenSolvablePair(frostState, grid, L.findPath);
+    // issue #65 T2 同款口径：冰封可见对可能已被熔岩吞没端点——燃烧端点时改走
+    // 火+冰封联合搜索（frozen=-1 工作格，与心跳兜底同一函数）。
+    if (pair && !FIR.canMatch(fireState, pair.a.r, pair.a.c, pair.b.r, pair.b.c)) {
+      pair = FIR.findUnburnedSolvablePair(fireState, frostBlockedGrid(), L.findPath);
+    }
     if (!pair) return; // 理论上无解时已自动洗牌，这里静默返回不消耗次数
     hintsLeft--;
     renderHintBtn();

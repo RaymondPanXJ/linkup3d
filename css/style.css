@@ -1668,3 +1668,57 @@ html[data-scene="se-hard"] {
   /* JS 层已保证 reduced 时不产生动画元素；此处兜底关停循环动画 */
   .ufo.hovering .ufo-bob, .ufo-lights { animation: none; }
 }
+
+/* ---------------- 熔岩口（issue #65 T2 熔火残骸）----------------
+ * 覆盖层与冰封同层（slot ::after + translateZ 抬起 2px），暖色熔壳替换冷色冰壳；
+ * 图案仍透出（fire.js 规则1「熔岩外观由渲染层负责」= 本段）。 */
+.tile-slot.tile-burning::after {        /* 熔壳覆盖：岩浆纹 + 内发光 */
+  content: '';
+  position: absolute;
+  inset: -3%;
+  border-radius: 14px;
+  background: radial-gradient(circle at 30% 28%,
+    rgba(255, 205, 92, .88) 0%, rgba(255, 96, 12, .8) 52%, rgba(150, 26, 0, .88) 100%);
+  box-shadow: inset 0 0 12px rgba(255, 238, 160, .85), 0 0 10px rgba(255, 120, 30, .5);
+  transform: translateZ(calc(var(--depth) / 2 + 2px));
+  pointer-events: none;
+  z-index: 3;
+  animation: lavapulse 1.6s ease-in-out infinite;
+}
+.tile-slot.tile-burning .face.front::after { /* 熔壳角标：与冰晶 ❄ 同位同径 */
+  content: '\1F525';
+  position: absolute;
+  right: 7%;
+  bottom: 5%;
+  font-size: calc(var(--emoji-size) * .45);
+  color: rgba(255, 240, 210, .95);
+  text-shadow: 0 0 6px rgba(255, 140, 40, .9);
+  z-index: 4;
+}
+.tile-slot.tile-burning .tile { cursor: default; }
+@keyframes lavapulse {                  /* 熔壳呼吸：亮度/微缩放起伏 */
+  0%, 100% { filter: brightness(1); transform: translateZ(calc(var(--depth) / 2 + 2px)) scale(1); }
+  50% { filter: brightness(1.22); transform: translateZ(calc(var(--depth) / 2 + 2px)) scale(1.03); }
+}
+/* 扑灭瞬间：一次性蒸汽团（game.js playQuench 挂类 560ms 后摘除，gen 守卫） */
+.tile-slot.tile-quenching::before {
+  content: '';
+  position: absolute;
+  inset: -6%;
+  border-radius: 16px;
+  transform: translateZ(calc(var(--depth) / 2 + 3px));
+  background: radial-gradient(circle at 50% 45%,
+    rgba(228, 240, 252, .85) 0%, rgba(170, 198, 224, .3) 55%, transparent 75%);
+  pointer-events: none;
+  z-index: 4;
+  animation: quenchpuff .55s ease-out forwards;
+}
+@keyframes quenchpuff {
+  0% { opacity: 0; transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(.55); }
+  35% { opacity: 1; transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(1); }
+  100% { opacity: 0; transform: translateZ(calc(var(--depth) / 2 + 3px)) scale(1.35); }
+}
+@media (prefers-reduced-motion: reduce) { /* 无障碍回退：关动画，保留静态熔壳/蒸汽 tint */
+  .tile-slot.tile-burning::after { animation: none; }
+  .tile-slot.tile-quenching::before { animation: none; opacity: .55; }
+}
