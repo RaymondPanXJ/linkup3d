@@ -34,6 +34,7 @@ var audioGestureChecks = require('./audio-gesture-static-check.js');
 var campaignSceneChecks = require('./campaign-scene-check.js');
 var gravityChecks = require('./gravity-static-check.js');
 var elapsedChecks = require('./elapsed-static-check.js');
+var htmlPathChecks = require('./html-paths-static-check.js');
 var simulationTests = require('./level-simulation.define.js');
 
 var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
@@ -45,7 +46,7 @@ var results = tests.runAll().concat(comboTests.runAll(), rankingTests.runAll(),
   enemyTests.runAll(), enemyChecks.runChecks(),
   frostWiringChecks.runChecks(), frostReworkChecks.runChecks(), starmapChecks.runChecks(), frostCrackChecks.runChecks(), frostHintChecks.runChecks(),
   fxChecks.runChecks(), ufoChecks.runChecks(), campaignSceneChecks.runChecks(),
-  gravityChecks.runChecks(), elapsedChecks.runChecks(),
+  gravityChecks.runChecks(), elapsedChecks.runChecks(), htmlPathChecks.runChecks(),
   simulationTests.runAll());
 var pass = 0;
 
