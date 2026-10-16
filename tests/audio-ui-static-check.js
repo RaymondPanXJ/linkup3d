@@ -28,7 +28,9 @@ function runChecks() {
 
   var root = path.join(__dirname, '..');
   var html = readUtf8(path.join(root, 'index.html'));
-  var game = readUtf8(path.join(root, 'js', 'game.js'));
+  var gameOnly = readUtf8(path.join(root, 'js', 'game.js'));
+  // 旧文本锚类断言按 issue #74 裁决c 重锚为 game.js+audio-ui.js 拼接目标
+  var game = gameOnly + '\n' + readUtf8(path.join(root, 'js', 'audio-ui.js'));
   var mod = readUtf8(path.join(root, 'js', 'audio-ui.js'));
   var bare = stripComments(mod);
   var runner = readUtf8(path.join(__dirname, 'run-tests.js'));
@@ -66,8 +68,13 @@ function runChecks() {
     /window\.__audioDiag = function \(\)/.test(game) &&
     /var s = SFX\.diag\(\), m = AudioUI\.diag\(\);/.test(game) &&
     /running: m\.running/.test(game));
+  check('C5 __audioDiag 消费点无悬空标识符（P1 回归锁：music 两字段必须走 m.）',
+    /musicOn: m\.musicOn, listenersActive: m\.listenersActive/.test(game) &&
+    !/musicOn: musicOn, listenersActive: musicGestureActive/.test(gameOnly));
+  check('C6 audio-ui diag() 返回形状含 musicOn/listenersActive（消费点依赖的字段在位）',
+    /return \{ running: m\.running, ctxState: m\.ctxState, currentTime: m\.currentTime,[\s\S]{0,80}musicOn: musicOn, listenersActive: musicGestureActive \};/.test(bare));
   check('C3 既有簇已迁出 game.js 无残留（迁移非复制）',
-    !/function renderMuteBtn|function renderMusicBtn|function ensureMusicStarted|function onFirstGesture|var musicPlayer|var MUSIC_KEY/.test(game));
+    !/function renderMuteBtn|function renderMusicBtn|function ensureMusicStarted|function onFirstGesture|var musicPlayer|var MUSIC_KEY/.test(gameOnly));
   check('C4 SFX 引擎留守 game.js 原地（工单口径：audio 依赖走现有接口不新造）',
     /var SFX = \(function \(\) \{/.test(game) &&
     /freeze: function/.test(game) && /ignite: function/.test(game));
@@ -102,6 +109,38 @@ function runChecks() {
     /setAttribute\('aria-label', musicOn/.test(bare));
   check('D10 开机即武装监听随迁（安全网默认在位，init 顶层直调）',
     /^\s*addMusicGestureListeners\(\);/m.test(bare));
+
+  /* D11 运行时探针：沙箱真调 init().diag()，堵 P1'全仓无人调用'缺口（issue #74 返工） */
+  var d11 = { shape: false, sfx: false };
+  try {
+    var noop = function () {};
+    function makeShimEl() {
+      return { textContent: '', classList: { toggle: noop }, setAttribute: noop,
+               addEventListener: noop };
+    }
+    var winShim = {
+      addEventListener: noop, removeEventListener: noop,
+      localStorage: { getItem: function () { return null; }, setItem: noop },
+      Music: { createPlayer: function () {
+        return { isRunning: function () { return false; }, start: noop, stop: noop,
+                 diag: function () { return { running: false, ctxState: 'none', currentTime: null }; } };
+      } },
+      navigator: { userActivation: { isActive: false, hasBeenActive: false } }
+    };
+    winShim.window = winShim;
+    var modFactory = new Function('window', 'navigator', 'localStorage', 'self',
+      mod + '\n;return (typeof self !== "undefined" && self.AudioUI) ? self.AudioUI : undefined;');
+    var AUD = modFactory(winShim, winShim.navigator, winShim.localStorage, winShim);
+    var sfxStub = { isMuted: function () { return false; }, setMuted: noop };
+    var handle = AUD.init({ muteBtn: makeShimEl(), musicBtn: makeShimEl(), SFX: sfxStub });
+    var d = handle.diag(); // P1 案发现场同款消费：diag 必须可直接调用且字段齐
+    d11.shape = ['running', 'ctxState', 'currentTime', 'musicOn', 'listenersActive']
+      .every(function (k) { return Object.prototype.hasOwnProperty.call(d, k); }) &&
+      d.musicOn === true && d.listenersActive === true;
+    d11.sfx = handle.SFX === sfxStub;
+  } catch (e) { /* 抛异常=探针失败 */ }
+  check('D11 运行时探针：沙箱真调 init().diag() 不抛异常且五字段齐、SFX 同源回传',
+    d11.shape && d11.sfx, 'shape=' + d11.shape + ' sfx=' + d11.sfx);
 
   /* ================ E. 注册完整性 ================ */
   check('E1 run-tests.js 已注册本套件（require + 调用）',

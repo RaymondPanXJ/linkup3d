@@ -1773,7 +1773,7 @@
       userActive: navigator.userActivation ? navigator.userActivation.hasBeenActive : null,
       sfx: { ctxState: s.ctxState, currentTime: s.currentTime },
       music: { running: m.running, ctxState: m.ctxState, currentTime: m.currentTime,
-               musicOn: musicOn, listenersActive: musicGestureActive }
+               musicOn: m.musicOn, listenersActive: m.listenersActive }
     };
   };
 })();

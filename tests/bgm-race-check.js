@@ -94,7 +94,8 @@ function runChecks() {
   }
 
   var root = path.join(__dirname, '..');
-  var game = readUtf8(path.join(root, 'js', 'game.js'));
+  var game = readUtf8(path.join(root, 'js', 'game.js')) + '\n'
+    + readUtf8(path.join(root, 'js', 'audio-ui.js')); // issue #74 刀1：音频簇已迁 audio-ui.js，重锚目标（断言本体零触碰）
   var music = readUtf8(path.join(root, 'js', 'music.js'));
 
   /* ============ A. 静态断言 ============ */

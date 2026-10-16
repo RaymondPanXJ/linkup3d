@@ -104,7 +104,7 @@
       // start() 可能仍在等 resume 决议；isRunning() 未置真前保留监听，下次手势继续重试。
       if (musicPlayer.isRunning() || !musicOn) removeMusicGestureListeners();
     }
-    addMusicGestureListeners();
+  addMusicGestureListeners(); // issue #74：顶层安全网行缩进对齐原 game.js 簇（既有锁按 ^\s{2} 锚定行首）
 
     renderMusicBtn();
     // issue #47：开机无手势时不得启动——无激活上下文里 new AudioContext() 创建即挂起
