@@ -5,6 +5,16 @@
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-16
+
+熔火残骸主题更新：熔岩口机制全量上线，纯函数状态层、主循环接线与逐关确定性仿真三件套一次到位。
+
+### Added
+
+- **熔岩口**（issue #65，收件箱首单）：熔岩火口与火焰蔓延机制——`js/fire.js` 纯函数状态层信封契约逐字镜像 `js/frost.js`（ignite/quench 返回 `{state, applied}`、spread 另附 `burned[]`，绝不改入参）；回合制蔓延由心跳推进、rng 与回合号注入保证决定论；同屏燃烧上限 4、到限 `applied=false`；同牌消除灭火 `quenchAround`（顺带补齐 ROADMAP #2 反推的消除灭火系）；`isBoardSolvable`/`findUnburnedSolvablePair` 可解性接口（T1，PR #69）。
+- **熔火主循环接线**（T2，PR #71）：`js/game.js` 接入 `window.Fire`——燃烧格不可选中/不可作连线端点、同牌消除触发灭火、独立 250ms `setInterval` 心跳驱动蔓延（沿用 `onTimerTick` 模式，禁 rAF）、hint 走熔岩感知可解口径、瓦片 `tile-burning`/`lava-vent` 三件套 UI（含 Reduced Motion 降级）；新增 `tests/fire-wiring-static-check.js` 32 项静态断言锁死 UI 三件套同步（经变异实验验证非摆设）。
+- **熔火逐关确定性仿真**（T3，PR #72）：`tests/fire-simulation.define.js` 每关注入火势种子仿真——硬断言"火拍从不杀盘"，配 fire-off 对照与传感器自检，确保蔓延永不摧毁关卡可解性（issue #37 仿真框架的熔火延伸）。
+
 ## [2.0.1] - 2026-10-16
 
 ### Fixed
