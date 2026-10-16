@@ -9,8 +9,8 @@
  *     warpTransform(dist, seed) → {skewX, scaleX, rotate}
  *       归一化距离 [0,1] → 形变量（越近越大；上限截断防爆版；纯函数）；
  *     springStep(current, target, vel, dtMs, k, damp) → {value, vel}
- *       阻尼弹簧迭代（dt 归一到 60Hz 步长、damp 按步数幂次补偿，
- *       帧率无关；k≈0.04 / damp≈0.85 迟滞+过冲回弹手感）；
+ *       阻尼弹簧迭代——本体已迁 js/tilt.js（issue #74 刀3），此处委托导出，
+ *       同一函数对象、API 不变；k≈0.04 / damp≈0.85 迟滞+过冲回弹手感；
  * - DOM 适配 mount(board, cfg, opts)：心跳 setInterval（250ms，沿用 game.js
  *   onTimerTick 模式）内部按 warpEveryMs 门控；命中格加类 tile-warp
  *   ~warpHoldMs 后移除（延迟回调经 token 世代号作废防竞态）；形变方向按格子
@@ -23,12 +23,15 @@
  */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) {
-    module.exports = factory();
+    module.exports = factory(require('./tilt.js')); // 刀3：弹簧本体在 tilt.js（Node 侧同步）
   } else {
-    root.Gravity = factory();
+    root.Gravity = factory(root.Tilt);
   }
-})(typeof self !== 'undefined' ? self : this, function () {
+})(typeof self !== 'undefined' ? self : this, function (Tilt) {
   'use strict';
+  if (!Tilt || typeof Tilt.springStep !== 'function') {
+    throw new Error('gravity.js: 需要 tilt.js（加载顺序必须置于 gravity.js 之前）');
+  }
 
   var WARP_MIN = 2, WARP_MAX = 4;   // 每周期扭曲格数（issue 要求 2~4）
   var HEARTBEAT_MS = 250;           // 心跳间隔（game.js setInterval 惯用口径）
@@ -83,23 +86,8 @@
     };
   }
 
-  /* ---------------- 纯函数：阻尼弹簧 ---------------- */
-  /**
-   * 单步弹簧：value 逼近 target。dt 归一到 16.666ms 基准步长（多帧合并步），
-   * damp 按步数幂次补偿 → 帧率无关。返回 {value, vel}，非法入参安全原样返回。
-   */
-  function springStep(current, target, vel, dtMs, k, damp) {
-    if (typeof current !== 'number' || !isFinite(current)) current = 0;
-    if (typeof target !== 'number' || !isFinite(target)) target = current;
-    if (typeof vel !== 'number' || !isFinite(vel)) vel = 0;
-    var kk = typeof k === 'number' && k > 0 && isFinite(k) ? k : 0.04;
-    var dm = typeof damp === 'number' && damp > 0 && damp < 1 ? damp : 0.85;
-    var n = (typeof dtMs === 'number' && dtMs > 0 && isFinite(dtMs))
-      ? dtMs / 16.666 : 1;
-    var acc = (target - current) * kk;
-    var v = (vel + acc * n) * Math.pow(dm, n);
-    return { value: current + v * n, vel: v };
-  }
+  /* ---------------- 阻尼弹簧：委托 tilt.js（issue #74 刀3，本体单源在 js/tilt.js）
+   ---------------- Gravity.springStep 对外签名与引用语义不变（同一函数对象）。 */
 
   /* ---------------- DOM 适配层 ---------------- */
   /**
@@ -204,7 +192,7 @@
     HEARTBEAT_MS: HEARTBEAT_MS,
     pickWarpTargets: pickWarpTargets,
     warpTransform: warpTransform,
-    springStep: springStep,
+    springStep: Tilt.springStep, // 委托（刀3）：单源 js/tilt.js，API 不变
     mount: mount
   };
 });
